@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="32dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Gaming Team Finder"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Home"
+        android:textSize="20sp"
+        android:layout_marginBottom="32dp" />
+
+    <Button
+        android:id="@+id/buttonProfile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="My Profile"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/buttonFindPlayers"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Find Players"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/buttonLfg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Browse LFG"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/buttonTeam"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Team / Group" />
+
+</LinearLayout>
