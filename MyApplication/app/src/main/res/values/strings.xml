@@ -1,8 +1,0 @@
-<resources>
-    <string name="app_name">My Application</string>
-    <string name="or_text">Or</string>
-    <string name="LogInRiot_text">LogIn with Riot account</string>
-    <string name="CreateAccGoogle_text">Create Account with Google</string>
-    <string name="CreateAccEmail_text">Create Account with e-mail</string>
-    <string name="login_with_riot_account">LogIn with Riot account</string>
-</resources>
