@@ -22,7 +22,10 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-public class MainActivity extends AppCompatActivity {
+import android.content.Intent;
+import android.widget.Toast;
+
+public class SearchPlayerActivity extends AppCompatActivity {
 
     private EditText editRiotId;
     private TextView textResult;
@@ -34,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_search_player);
 
         editRiotId = findViewById(R.id.editRiotId);
         buttonSearch = findViewById(R.id.buttonSearch);
@@ -44,8 +47,36 @@ public class MainActivity extends AppCompatActivity {
         playerResultLayout = findViewById(R.id.playerResultLayout);
         textPlayerFound = findViewById(R.id.textPlayerFound);
 
+        Button buttonNavHome = findViewById(R.id.buttonNavHome);
+        Button buttonNavSearch = findViewById(R.id.buttonNavSearch);
+        Button buttonNavMessages = findViewById(R.id.buttonNavMessages);
+        Button buttonNavProfile = findViewById(R.id.buttonNavProfile);
+
         buttonSearch.setOnClickListener(v -> searchPlayer());
         buttonBack.setOnClickListener(v -> finish());
+
+        buttonNavHome.setOnClickListener(v -> {
+            Intent intent = new Intent(SearchPlayerActivity.this, HomeActivity.class);
+            startActivity(intent);
+        });
+
+        buttonNavSearch.setOnClickListener(v -> {
+            // Already on Search screen
+        });
+
+        buttonNavMessages.setOnClickListener(v -> {
+            Toast.makeText(
+                    SearchPlayerActivity.this,
+                    "Messages coming soon",
+                    Toast.LENGTH_SHORT
+            ).show();
+        });
+
+        buttonNavProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(SearchPlayerActivity.this, ProfileActivity.class);
+            startActivity(intent);
+        });
+
 
         editRiotId.setOnEditorActionListener((v, actionId, event) -> {
             searchPlayer();

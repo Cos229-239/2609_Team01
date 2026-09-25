@@ -5,6 +5,9 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import android.content.Intent;
+
+import android.widget.Toast;
 
 public class ProfileActivity extends AppCompatActivity {
 
@@ -35,9 +38,46 @@ public class ProfileActivity extends AppCompatActivity {
 
         Button buttonBack = findViewById(R.id.buttonBack);
 
-        buttonBack.setOnClickListener(v -> finish());
+        Button buttonEditProfile = findViewById(R.id.buttonEditProfile);
 
+        buttonEditProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, EditProfileActivity.class);
+            startActivity(intent);
+        });
+
+        buttonBack.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, HomeActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            finish();
+        });
         loadProfile();
+
+
+        Button buttonNavHome = findViewById(R.id.buttonNavHome);
+        Button buttonNavSearch = findViewById(R.id.buttonNavSearch);
+        Button buttonNavMessages = findViewById(R.id.buttonNavMessages);
+        Button buttonNavProfile = findViewById(R.id.buttonNavProfile);
+
+        buttonNavHome.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, HomeActivity.class);
+            startActivity(intent);
+        });
+
+        buttonNavSearch.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, SearchPlayerActivity.class);
+            startActivity(intent);
+        });
+
+        buttonNavMessages.setOnClickListener(v -> {
+            Toast.makeText(
+                    ProfileActivity.this,
+                    "Messages coming soon",
+                    Toast.LENGTH_SHORT
+            ).show();
+        });
+
+
     }
 
     @Override

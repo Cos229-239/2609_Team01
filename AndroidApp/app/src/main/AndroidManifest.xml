@@ -14,7 +14,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GamingTeamFinder">
         <activity
-            android:name=".MainActivity"
+            android:name=".SearchPlayerActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
@@ -47,14 +47,7 @@
             android:name=".TeamActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".ProfileMenuActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".ProfileData"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
+
         <activity
             android:name=".SignUpActivity"
             android:exported="false"
