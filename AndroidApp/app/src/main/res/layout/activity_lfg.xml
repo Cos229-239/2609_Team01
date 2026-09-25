@@ -3,48 +3,41 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="32dp">
+    android:padding="24dp">
+
+    <Button
+        android:id="@+id/buttonBack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="← Back"
+        android:layout_marginBottom="16dp" />
 
     <TextView
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Gaming Team Finder"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="8dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Home"
-        android:textSize="20sp"
-        android:layout_marginBottom="32dp" />
-
-    <Button
-        android:id="@+id/buttonProfile"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Profile"
-        android:layout_marginBottom="16dp" />
-
-    <Button
-        android:id="@+id/buttonFindPlayers"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Find Players"
-        android:layout_marginBottom="16dp" />
-
-    <Button
-        android:id="@+id/buttonLfg"
-        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Browse LFG"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="24dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Looking for a group?"
+        android:textSize="18sp"
         android:layout_marginBottom="16dp" />
 
     <Button
-        android:id="@+id/buttonTeam"
+        android:id="@+id/buttonCreateLfg"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Team / Group" />
+        android:text="Create LFG Post"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/buttonViewLfgPosts"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="View LFG Posts" />
 
 </LinearLayout>

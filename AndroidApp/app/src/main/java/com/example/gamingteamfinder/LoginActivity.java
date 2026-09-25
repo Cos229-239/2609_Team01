@@ -19,5 +19,12 @@ public class LoginActivity extends AppCompatActivity {
             Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
             startActivity(intent);
         });
+
+        Button buttonCreateAccount = findViewById(R.id.buttonCreateAccount);
+
+        buttonCreateAccount.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
+            startActivity(intent);
+        });
     }
 }

@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F6FA">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <Button
+            android:id="@+id/buttonBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="← Back"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edit Profile"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="24dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gamer Tag"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
+
+        <EditText
+            android:id="@+id/editDisplayName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter gamer tag"
+            android:background="#FFFFFF"
+            android:padding="14dp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Region"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
+
+        <EditText
+            android:id="@+id/editRegion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Example: North America"
+            android:background="#FFFFFF"
+            android:padding="14dp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="About"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
+
+        <EditText
+            android:id="@+id/editAbout"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_marginBottom="16dp"
+            android:background="#FFFFFF"
+            android:gravity="top"
+            android:hint="Tell other players about yourself"
+            android:inputType="textMultiLine"
+            android:padding="14dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Main Game"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
+
+        <EditText
+            android:id="@+id/editGame"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Example: League of Legends"
+            android:background="#FFFFFF"
+            android:padding="14dp"
+            android:layout_marginBottom="16dp" />
+
+        <EditText
+            android:id="@+id/editRiotId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Riot ID"
+            android:background="#FFFFFF"
+            android:padding="14dp"
+            android:layout_marginBottom="16dp" />
+
+        <EditText
+            android:id="@+id/editRank"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Rank"
+            android:background="#FFFFFF"
+            android:padding="14dp"
+            android:layout_marginBottom="16dp" />
+
+        <EditText
+            android:id="@+id/editRole"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Preferred Role"
+            android:background="#FFFFFF"
+            android:padding="14dp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Play Style / Availability"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
+
+        <EditText
+            android:id="@+id/editAvailability"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Example: Team-focused · Voice chat · Evenings"
+            android:background="#FFFFFF"
+            android:padding="14dp"
+            android:layout_marginBottom="24dp" />
+
+        <Button
+            android:id="@+id/buttonSaveProfile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save Profile" />
+
+    </LinearLayout>
+
+</ScrollView>

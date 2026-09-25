@@ -38,12 +38,14 @@ public class MainActivity extends AppCompatActivity {
 
         editRiotId = findViewById(R.id.editRiotId);
         buttonSearch = findViewById(R.id.buttonSearch);
+        Button buttonBack = findViewById(R.id.buttonBack);
         textResult = findViewById(R.id.textResult);
         profileIcon = findViewById(R.id.profileIcon);
         playerResultLayout = findViewById(R.id.playerResultLayout);
         textPlayerFound = findViewById(R.id.textPlayerFound);
 
         buttonSearch.setOnClickListener(v -> searchPlayer());
+        buttonBack.setOnClickListener(v -> finish());
 
         editRiotId.setOnEditorActionListener((v, actionId, event) -> {
             searchPlayer();
