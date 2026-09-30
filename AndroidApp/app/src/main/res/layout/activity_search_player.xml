@@ -7,85 +7,109 @@
     android:orientation="vertical"
     android:background="#EEF1FA">
 
-    <!-- Main Search Content -->
+    <!-- MAIN CONTENT -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="18dp">
 
-        <Button
-            android:id="@+id/buttonBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="← Back"
-            android:layout_marginBottom="16dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Gaming Team Finder"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="24dp" />
-
-        <EditText
-            android:id="@+id/editRiotId"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Riot ID (example: abc#123)"
-            android:inputType="text"
-            android:imeOptions="actionSearch"
-            android:singleLine="true"
-            android:layout_marginBottom="16dp" />
-
-        <!-- Actual Riot Search Button -->
-        <Button
-            android:id="@+id/buttonSearch"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="Search Player"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#6C4FB3"
-            android:layout_marginBottom="20dp" />
-
-        <TextView
-            android:id="@+id/textPlayerFound"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Player Found!"
-            android:textSize="18sp"
-            android:layout_marginBottom="12dp"
-            android:visibility="gone" />
-
+        <!-- TOP BAR -->
         <LinearLayout
-            android:id="@+id/playerResultLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:visibility="gone">
-
-            <ImageView
-                android:id="@+id/profileIcon"
-                android:layout_width="96dp"
-                android:layout_height="96dp"
-                android:layout_marginEnd="16dp"
-                android:contentDescription="Player Profile Icon" />
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="24dp">
+            <Button
+                android:id="@+id/buttonBack"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="← Back"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#6C4FB3" />
 
             <TextView
-                android:id="@+id/textResult"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textSize="16sp" />
+                android:text="Search Results"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#222222"
+                android:layout_marginStart="12dp" />
 
         </LinearLayout>
 
+        <!-- PLAYERS / TEAMS TABS -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:id="@+id/tabPlayers"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Players"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:background="#6C4FB3" />
+
+            <TextView
+                android:id="@+id/tabTeams"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Teams"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#444444"
+                android:background="#D5D5D5" />
+
+        </LinearLayout>
+
+        <!-- FILTER -->
+        <Button
+            android:id="@+id/buttonFilter"
+            android:layout_width="wrap_content"
+            android:layout_height="42dp"
+            android:text="Filter"
+            android:textAllCaps="false"
+            android:textColor="#333333"
+            android:backgroundTint="#D9D9D9"
+            android:layout_marginBottom="16dp" />
+
+        <!-- PLAYER LIST -->
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:id="@+id/playersContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+            </LinearLayout>
+
+        </ScrollView>
+
     </LinearLayout>
 
-    <!-- Bottom Navigation -->
+
+    <!-- BOTTOM NAVIGATION -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="72dp"

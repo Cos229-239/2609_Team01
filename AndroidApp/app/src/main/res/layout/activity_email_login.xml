@@ -16,6 +16,20 @@
         android:paddingBottom="40dp">
 
         <TextView
+            android:id="@+id/buttonBackToWelcome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="← Back"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#376DA4"
+            android:gravity="start"
+            android:paddingTop="8dp"
+            android:paddingBottom="12dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:gravity="center"

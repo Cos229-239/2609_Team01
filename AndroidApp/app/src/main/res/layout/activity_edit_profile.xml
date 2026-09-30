@@ -91,33 +91,56 @@
             android:padding="14dp"
             android:layout_marginBottom="16dp" />
 
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Riot ID"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
+
         <EditText
             android:id="@+id/editRiotId"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Riot ID"
+            android:hint="Example: abc#123"
             android:background="#FFFFFF"
             android:padding="14dp"
             android:layout_marginBottom="16dp" />
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rank"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
 
         <EditText
             android:id="@+id/editRank"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Rank"
+            android:hint="Example: Silver"
             android:background="#FFFFFF"
             android:padding="14dp"
             android:layout_marginBottom="16dp" />
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Preferred Role"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
 
         <EditText
             android:id="@+id/editRole"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Preferred Role"
+            android:hint="Example: Mid / Top"
             android:background="#FFFFFF"
             android:padding="14dp"
             android:layout_marginBottom="16dp" />
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -129,7 +152,7 @@
             android:id="@+id/editAvailability"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Example: Team-focused · Voice chat · Evenings"
+            android:hint="Example: Team-focused / Voice chat / Evenings"
             android:background="#FFFFFF"
             android:padding="14dp"
             android:layout_marginBottom="24dp" />
