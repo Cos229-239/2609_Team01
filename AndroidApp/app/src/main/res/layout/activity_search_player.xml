@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#EEF1FA">
+
+    <!-- MAIN CONTENT -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:padding="18dp">
+
+        <!-- TOP BAR -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="24dp">
+            <Button
+                android:id="@+id/buttonBack"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="← Back"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#6C4FB3" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Search Results"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#222222"
+                android:layout_marginStart="12dp" />
+
+        </LinearLayout>
+
+        <!-- PLAYERS / TEAMS TABS -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:id="@+id/tabPlayers"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Players"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:background="#6C4FB3" />
+
+            <TextView
+                android:id="@+id/tabTeams"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Teams"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#444444"
+                android:background="#D5D5D5" />
+
+        </LinearLayout>
+
+        <!-- FILTER -->
+        <Button
+            android:id="@+id/buttonFilter"
+            android:layout_width="wrap_content"
+            android:layout_height="42dp"
+            android:text="Filter"
+            android:textAllCaps="false"
+            android:textColor="#333333"
+            android:backgroundTint="#D9D9D9"
+            android:layout_marginBottom="16dp" />
+
+        <!-- PLAYER LIST -->
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:id="@+id/playersContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+            </LinearLayout>
+
+        </ScrollView>
+
+    </LinearLayout>
+
+
+    <!-- BOTTOM NAVIGATION -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="#D9E1F2">
+
+        <Button
+            android:id="@+id/buttonNavHome"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="⌂"
+            android:textSize="28sp"
+            android:backgroundTint="#00FFFFFF"
+            android:textColor="#7B8193" />
+
+        <Button
+            android:id="@+id/buttonNavSearch"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="🔍"
+            android:textSize="24sp"
+            android:backgroundTint="#00FFFFFF"
+            android:textColor="#4F35A5" />
+
+        <Button
+            android:id="@+id/buttonNavMessages"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="💬"
+            android:textSize="24sp"
+            android:backgroundTint="#00FFFFFF"
+            android:textColor="#7B8193" />
+
+        <Button
+            android:id="@+id/buttonNavProfile"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="👤"
+            android:textSize="24sp"
+            android:backgroundTint="#00FFFFFF"
+            android:textColor="#7B8193" />
+
+    </LinearLayout>
+
+</LinearLayout>
