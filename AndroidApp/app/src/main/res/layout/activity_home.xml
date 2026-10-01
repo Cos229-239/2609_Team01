@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -31,20 +32,45 @@
                     android:text="Home"
                     android:textSize="28sp"
                     android:textStyle="bold" />
+                <FrameLayout
+                    android:id="@+id/notificationContainer"
+                    android:layout_width="52dp"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="6dp">
 
-                <TextView
+                    <ImageView
+                        android:id="@+id/buttonNotifications"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_notification"
+                        app:tint="#6B6B75"
+                        android:contentDescription="Notifications" />
+
+                    <TextView
+                        android:id="@+id/textNotificationBadge"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="top|end"
+                        android:gravity="center"
+                        android:text=""
+                        android:textColor="#FFFFFF"
+                        android:textStyle="bold"
+                        android:textSize="12sp"
+                        android:background="@drawable/notification_badge_background"
+                        android:visibility="visible" />
+
+                </FrameLayout>
+
+                <ImageView
+                    android:id="@+id/buttonFriends"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:gravity="center"
-                    android:text="🔔"
-                    android:textSize="22sp" />
-
-                <TextView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:gravity="center"
-                    android:text="👥"
-                    android:textSize="22sp" />
+                    android:layout_marginTop="6dp"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_friends"
+                    app:tint="#6B6B75"
+                    android:contentDescription="Friends" />
 
             </LinearLayout>
 
@@ -98,7 +124,7 @@
                     android:layout_width="0dp"
                     android:layout_height="78dp"
                     android:layout_weight="1"
-                    android:text="👥  Find Team"
+                    android:text="Find Team"
                     android:textStyle="bold"
                     android:textSize="15sp"
                     android:backgroundTint="#6C4FB3"
@@ -109,7 +135,7 @@
                     android:layout_width="0dp"
                     android:layout_height="78dp"
                     android:layout_weight="1"
-                    android:text="🎮  Find Duo"
+                    android:text="Find Duo"
                     android:textStyle="bold"
                     android:textSize="15sp"
                     android:backgroundTint="#6C4FB3"
@@ -128,7 +154,7 @@
                     android:layout_width="0dp"
                     android:layout_height="78dp"
                     android:layout_weight="1"
-                    android:text="🔎  Browse Players"
+                    android:text="Players/Teams"
                     android:textStyle="bold"
                     android:textSize="14sp"
                     android:maxLines="1"
@@ -142,7 +168,7 @@
                     android:layout_width="0dp"
                     android:layout_height="78dp"
                     android:layout_weight="1"
-                    android:text="➕  Create Team"
+                    android:text="Create Team"
                     android:textStyle="bold"
                     android:textSize="15sp"
                     android:backgroundTint="#6C4FB3"
@@ -162,49 +188,49 @@
         android:gravity="center"
         android:background="#D9E1F2">
 
-        <Button
+        <ImageButton
             android:id="@+id/buttonHome"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="⌂"
-            android:textSize="28sp"
-            android:backgroundTint="#00FFFFFF"
-            android:textColor="#6C4FB3"
-            android:alpha="0.45" />
+            android:src="@drawable/ic_nav_home"
+            android:background="@android:color/transparent"
+            android:scaleType="center"
+            app:tint="#6C4FB3"
+            android:contentDescription="Home" />
 
-        <Button
+        <ImageButton
             android:id="@+id/buttonSearch"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="🔍"
-            android:textSize="24sp"
-            android:backgroundTint="#00FFFFFF"
-            android:textColor="#30364F"
-            android:alpha="1.0" />
+            android:src="@drawable/ic_nav_search"
+            android:background="@android:color/transparent"
+            android:scaleType="center"
+            app:tint="#6B6B75"
+            android:contentDescription="Search" />
 
-        <Button
+        <ImageButton
             android:id="@+id/buttonMessages"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="💬"
-            android:textSize="24sp"
-            android:backgroundTint="#00FFFFFF"
-            android:textColor="#30364F"
-            android:alpha="1.0" />
+            android:src="@drawable/ic_nav_messages"
+            android:background="@android:color/transparent"
+            android:scaleType="center"
+            app:tint="#6B6B75"
+            android:contentDescription="Messages" />
 
-        <Button
+        <ImageButton
             android:id="@+id/buttonProfile"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="👤"
-            android:textSize="24sp"
-            android:backgroundTint="#00FFFFFF"
-            android:textColor="#30364F"
-            android:alpha="1.0" />
+            android:src="@drawable/ic_nav_profile"
+            android:background="@android:color/transparent"
+            android:scaleType="center"
+            app:tint="#6B6B75"
+            android:contentDescription="Profile" />
 
     </LinearLayout>
 </LinearLayout>

@@ -1,7 +1,14 @@
 package com.example.gamingteamfinder;
 
+import android.view.View;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.ImageButton;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -14,10 +21,25 @@ import android.widget.TextView;
 
 public class HomeActivity extends AppCompatActivity {
 
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    private TextView textNotificationBadge;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        // Firebase
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
+    // Notification badge
+        textNotificationBadge = findViewById(R.id.textNotificationBadge);
+
+    // Hide badge until Firestore finishes loading
+        textNotificationBadge.setVisibility(View.GONE);
 
         LinearLayout friendsContainer = findViewById(R.id.friendsContainer);
 
@@ -32,11 +54,10 @@ public class HomeActivity extends AppCompatActivity {
         Button buttonTeam = findViewById(R.id.buttonTeam);
 
         // Bottom Navigation
-        Button buttonHome = findViewById(R.id.buttonHome);
-        Button buttonSearch = findViewById(R.id.buttonSearch);
-        Button buttonMessages = findViewById(R.id.buttonMessages);
-        Button buttonProfile = findViewById(R.id.buttonProfile);
-
+        ImageButton buttonHome = findViewById(R.id.buttonHome);
+        ImageButton buttonSearch = findViewById(R.id.buttonSearch);
+        ImageButton buttonMessages = findViewById(R.id.buttonMessages);
+        ImageButton buttonProfile = findViewById(R.id.buttonProfile);
 
         // Find Team
         buttonFindTeam.setOnClickListener(v -> {
@@ -97,6 +118,51 @@ public class HomeActivity extends AppCompatActivity {
             Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
             startActivity(intent);
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        loadNotificationBadge();
+    }
+
+    private void loadNotificationBadge() {
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser == null) {
+            textNotificationBadge.setVisibility(View.GONE);
+            return;
+        }
+
+        String currentUid = currentUser.getUid();
+
+        db.collection("playerRequests")
+                .whereEqualTo("toUid", currentUid)
+                .whereEqualTo("status", "pending")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+
+                    int requestCount = queryDocumentSnapshots.size();
+
+                    if (requestCount > 0) {
+
+                        textNotificationBadge.setText(
+                                String.valueOf(requestCount)
+                        );
+
+                        textNotificationBadge.setVisibility(View.VISIBLE);
+
+                    } else {
+
+                        textNotificationBadge.setVisibility(View.GONE);
+                    }
+                })
+                .addOnFailureListener(e -> {
+
+                    textNotificationBadge.setVisibility(View.GONE);
+                });
     }
 
     private void addFriend(

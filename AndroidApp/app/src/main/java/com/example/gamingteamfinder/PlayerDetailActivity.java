@@ -10,9 +10,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FieldValue;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public class PlayerDetailActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
+    private String playerUid;
 
     private TextView textDetailName;
     private TextView textDetailSummary;
@@ -28,6 +37,7 @@ public class PlayerDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_player_detail);
 
         db = FirebaseFirestore.getInstance();
+        mAuth = FirebaseAuth.getInstance();
 
         textDetailName = findViewById(R.id.textDetailName);
         textDetailSummary = findViewById(R.id.textDetailSummary);
@@ -45,14 +55,10 @@ public class PlayerDetailActivity extends AppCompatActivity {
         buttonClose.setOnClickListener(v -> finish());
 
         buttonRequestAdd.setOnClickListener(v -> {
-            Toast.makeText(
-                    PlayerDetailActivity.this,
-                    "Request feature coming soon",
-                    Toast.LENGTH_SHORT
-            ).show();
+            sendPlayerRequest();
         });
 
-        String playerUid = getIntent().getStringExtra("PLAYER_UID");
+        playerUid = getIntent().getStringExtra("PLAYER_UID");
 
         if (playerUid == null || playerUid.isEmpty()) {
 
@@ -77,7 +83,9 @@ public class PlayerDetailActivity extends AppCompatActivity {
                 .addOnSuccessListener(documentSnapshot -> {
 
                     if (documentSnapshot.exists()) {
+
                         displayPlayer(documentSnapshot);
+
                     } else {
 
                         Toast.makeText(
@@ -94,6 +102,62 @@ public class PlayerDetailActivity extends AppCompatActivity {
                     Toast.makeText(
                             PlayerDetailActivity.this,
                             "Failed to load player profile.",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                });
+    }
+
+    private void sendPlayerRequest() {
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser == null) {
+            Toast.makeText(
+                    this,
+                    "Please log in first.",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            return;
+        }
+
+        String fromUid = currentUser.getUid();
+
+        if (fromUid.equals(playerUid)) {
+            Toast.makeText(
+                    this,
+                    "You cannot send a request to yourself.",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            return;
+        }
+
+        String requestId = fromUid + "_" + playerUid;
+
+        Map<String, Object> request = new HashMap<>();
+
+        request.put("fromUid", fromUid);
+        request.put("toUid", playerUid);
+        request.put("status", "pending");
+        request.put("createdAt", FieldValue.serverTimestamp());
+
+        db.collection("playerRequests")
+                .document(requestId)
+                .set(request)
+                .addOnSuccessListener(unused -> {
+
+                    Toast.makeText(
+                            PlayerDetailActivity.this,
+                            "Request sent!",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                })
+                .addOnFailureListener(e -> {
+
+                    Toast.makeText(
+                            PlayerDetailActivity.this,
+                            "Failed to send request.",
                             Toast.LENGTH_SHORT
                     ).show();
                 });

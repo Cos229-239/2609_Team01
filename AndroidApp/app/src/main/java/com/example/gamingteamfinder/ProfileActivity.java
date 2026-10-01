@@ -3,6 +3,7 @@ package com.example.gamingteamfinder;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,10 +52,10 @@ public class ProfileActivity extends AppCompatActivity {
         Button buttonBack = findViewById(R.id.buttonBack);
         Button buttonEditProfile = findViewById(R.id.buttonEditProfile);
 
-        Button buttonNavHome = findViewById(R.id.buttonNavHome);
-        Button buttonNavSearch = findViewById(R.id.buttonNavSearch);
-        Button buttonNavMessages = findViewById(R.id.buttonNavMessages);
-        Button buttonNavProfile = findViewById(R.id.buttonNavProfile);
+        ImageButton buttonNavHome = findViewById(R.id.buttonNavHome);
+        ImageButton buttonNavSearch = findViewById(R.id.buttonNavSearch);
+        ImageButton buttonNavMessages = findViewById(R.id.buttonNavMessages);
+        ImageButton buttonNavProfile = findViewById(R.id.buttonNavProfile);
 
         // Edit Profile
         buttonEditProfile.setOnClickListener(v -> {
@@ -110,7 +111,6 @@ public class ProfileActivity extends AppCompatActivity {
             // Already on Profile screen
         });
 
-        loadProfile();
     }
 
     @Override

@@ -7,10 +7,12 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.widget.ImageButton;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -25,6 +27,7 @@ public class SearchPlayerActivity extends AppCompatActivity {
     private FirebaseFirestore db;
 
     private LinearLayout playersContainer;
+    private boolean isLoadingPlayers = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,16 +47,18 @@ public class SearchPlayerActivity extends AppCompatActivity {
         playersContainer = findViewById(R.id.playersContainer);
 
         // Bottom navigation
-        Button buttonNavHome = findViewById(R.id.buttonNavHome);
-        Button buttonNavSearch = findViewById(R.id.buttonNavSearch);
-        Button buttonNavMessages = findViewById(R.id.buttonNavMessages);
-        Button buttonNavProfile = findViewById(R.id.buttonNavProfile);
+        ImageButton buttonNavHome = findViewById(R.id.buttonNavHome);
+        ImageButton buttonNavSearch = findViewById(R.id.buttonNavSearch);
+        ImageButton buttonNavMessages = findViewById(R.id.buttonNavMessages);
+        ImageButton buttonNavProfile = findViewById(R.id.buttonNavProfile);
 
         // Back
         buttonBack.setOnClickListener(v -> finish());
 
         // Players tab
-        tabPlayers.setOnClickListener(v -> loadPlayers());
+        tabPlayers.setOnClickListener(v -> {
+            // Already on Players tab
+        });
 
         // Teams tab
         tabTeams.setOnClickListener(v -> {
@@ -117,9 +122,19 @@ public class SearchPlayerActivity extends AppCompatActivity {
 
     private void loadPlayers() {
 
+        if (isLoadingPlayers) {
+            return;
+        }
+
+        isLoadingPlayers = true;
+
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
+
+
         if (currentUser == null) {
+
+            isLoadingPlayers = false;
 
             Toast.makeText(
                     SearchPlayerActivity.this,
@@ -138,6 +153,7 @@ public class SearchPlayerActivity extends AppCompatActivity {
         db.collection("users")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
+
 
                     int playerCount = 0;
 
@@ -181,8 +197,11 @@ public class SearchPlayerActivity extends AppCompatActivity {
                     if (playerCount == 0) {
                         showNoPlayers();
                     }
+                    isLoadingPlayers = false;
                 })
                 .addOnFailureListener(e -> {
+
+                    isLoadingPlayers = false;
 
                     Toast.makeText(
                             SearchPlayerActivity.this,

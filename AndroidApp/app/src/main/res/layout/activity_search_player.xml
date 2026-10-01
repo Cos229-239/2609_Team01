@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -116,46 +117,49 @@
         android:orientation="horizontal"
         android:gravity="center"
         android:background="#D9E1F2">
-
-        <Button
+        <ImageButton
             android:id="@+id/buttonNavHome"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="⌂"
-            android:textSize="28sp"
-            android:backgroundTint="#00FFFFFF"
-            android:textColor="#7B8193" />
+            android:src="@drawable/ic_nav_home"
+            android:background="@android:color/transparent"
+            android:scaleType="center"
+            app:tint="#6B6B75"
+            android:contentDescription="Home" />
 
-        <Button
+        <ImageButton
             android:id="@+id/buttonNavSearch"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="🔍"
-            android:textSize="24sp"
-            android:backgroundTint="#00FFFFFF"
-            android:textColor="#4F35A5" />
+            android:src="@drawable/ic_nav_search"
+            android:background="@android:color/transparent"
+            android:scaleType="center"
+            app:tint="#6C4FB3"
+            android:contentDescription="Search" />
 
-        <Button
+        <ImageButton
             android:id="@+id/buttonNavMessages"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="💬"
-            android:textSize="24sp"
-            android:backgroundTint="#00FFFFFF"
-            android:textColor="#7B8193" />
+            android:src="@drawable/ic_nav_messages"
+            android:background="@android:color/transparent"
+            android:scaleType="center"
+            app:tint="#6B6B75"
+            android:contentDescription="Messages" />
 
-        <Button
+        <ImageButton
             android:id="@+id/buttonNavProfile"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="👤"
-            android:textSize="24sp"
-            android:backgroundTint="#00FFFFFF"
-            android:textColor="#7B8193" />
+            android:src="@drawable/ic_nav_profile"
+            android:background="@android:color/transparent"
+            android:scaleType="center"
+            app:tint="#6B6B75"
+            android:contentDescription="Profile" />
 
     </LinearLayout>
 
