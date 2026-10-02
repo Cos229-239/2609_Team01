@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.widget.ImageButton;
 import android.widget.Button;
 import android.widget.Toast;
+import android.widget.FrameLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -37,6 +38,8 @@ public class HomeActivity extends AppCompatActivity {
 
     // Notification badge
         textNotificationBadge = findViewById(R.id.textNotificationBadge);
+        FrameLayout notificationContainer =
+                findViewById(R.id.notificationContainer);
 
     // Hide badge until Firestore finishes loading
         textNotificationBadge.setVisibility(View.GONE);
@@ -58,6 +61,17 @@ public class HomeActivity extends AppCompatActivity {
         ImageButton buttonSearch = findViewById(R.id.buttonSearch);
         ImageButton buttonMessages = findViewById(R.id.buttonMessages);
         ImageButton buttonProfile = findViewById(R.id.buttonProfile);
+
+        // Notifications
+        notificationContainer.setOnClickListener(v -> {
+
+            Intent intent = new Intent(
+                    HomeActivity.this,
+                    NotificationsActivity.class
+            );
+
+            startActivity(intent);
+        });
 
         // Find Team
         buttonFindTeam.setOnClickListener(v -> {

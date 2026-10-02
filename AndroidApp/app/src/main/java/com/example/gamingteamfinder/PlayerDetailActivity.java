@@ -6,6 +6,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import android.view.View;
 
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -18,6 +19,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class PlayerDetailActivity extends AppCompatActivity {
+
+    private String requestId;
+    private boolean fromNotification;
 
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
@@ -47,18 +51,34 @@ public class PlayerDetailActivity extends AppCompatActivity {
         textDetailAvailability = findViewById(R.id.textDetailAvailability);
         textDetailRiotId = findViewById(R.id.textDetailRiotId);
 
-        Button buttonCloseTop = findViewById(R.id.buttonCloseTop);
         Button buttonClose = findViewById(R.id.buttonClose);
         Button buttonRequestAdd = findViewById(R.id.buttonRequestAdd);
 
-        buttonCloseTop.setOnClickListener(v -> finish());
+        fromNotification =
+                getIntent().getBooleanExtra("FROM_NOTIFICATION", false);
+
+        if (fromNotification) {
+            buttonRequestAdd.setText("Add");
+        }
+
         buttonClose.setOnClickListener(v -> finish());
 
         buttonRequestAdd.setOnClickListener(v -> {
-            sendPlayerRequest();
+
+            if (fromNotification) {
+
+                acceptPlayerRequest();
+
+            } else {
+
+                sendPlayerRequest();
+            }
         });
 
         playerUid = getIntent().getStringExtra("PLAYER_UID");
+
+        requestId = getIntent().getStringExtra("REQUEST_ID");
+
 
         if (playerUid == null || playerUid.isEmpty()) {
 
@@ -73,6 +93,42 @@ public class PlayerDetailActivity extends AppCompatActivity {
         }
 
         loadPlayer(playerUid);
+    }
+
+    private void acceptPlayerRequest() {
+
+        if (requestId == null || requestId.isEmpty()) {
+
+            Toast.makeText(
+                    this,
+                    "Request could not be found.",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            return;
+        }
+
+        db.collection("playerRequests")
+                .document(requestId)
+                .update("status", "accepted")
+                .addOnSuccessListener(unused -> {
+
+                    Toast.makeText(
+                            PlayerDetailActivity.this,
+                            "Player added!",
+                            Toast.LENGTH_SHORT
+                    ).show();
+
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+
+                    Toast.makeText(
+                            PlayerDetailActivity.this,
+                            "Failed to add player.",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                });
     }
 
     private void loadPlayer(String playerUid) {
