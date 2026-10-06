@@ -21,6 +21,10 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public class SearchPlayerActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
@@ -130,8 +134,6 @@ public class SearchPlayerActivity extends AppCompatActivity {
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
-
-
         if (currentUser == null) {
 
             isLoadingPlayers = false;
@@ -147,57 +149,99 @@ public class SearchPlayerActivity extends AppCompatActivity {
 
         String currentUid = currentUser.getUid();
 
-        // Remove previous cards
+        // Clear old player cards
         playersContainer.removeAllViews();
 
-        db.collection("users")
+        Set<String> friendUids = new HashSet<>();
+
+        // First, find all friends of the current user
+        db.collection("friends")
+                .whereArrayContains("members", currentUid)
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
+                .addOnSuccessListener(friendSnapshots -> {
 
+                    for (QueryDocumentSnapshot friendDocument : friendSnapshots) {
 
-                    int playerCount = 0;
+                        List<String> members =
+                                (List<String>) friendDocument.get("members");
 
-                    for (QueryDocumentSnapshot document
-                            : queryDocumentSnapshots) {
+                        if (members != null) {
 
-                        // Do not show the current user
-                        if (document.getId().equals(currentUid)) {
-                            continue;
+                            for (String uid : members) {
+
+                                // Save only the OTHER user's UID
+                                if (!uid.equals(currentUid)) {
+                                    friendUids.add(uid);
+                                }
+                            }
                         }
-
-                        String playerUid = document.getId();
-
-                        String displayName =
-                                getValue(document.getString("displayName"));
-
-                        String game =
-                                getValue(document.getString("game"));
-
-                        String rank =
-                                getValue(document.getString("rank"));
-
-                        String role =
-                                getValue(document.getString("role"));
-
-                        String availability =
-                                getValue(document.getString("availability"));
-
-                        addPlayerCard(
-                                playerUid,
-                                displayName,
-                                game,
-                                rank,
-                                role,
-                                availability
-                        );
-
-                        playerCount++;
                     }
 
-                    if (playerCount == 0) {
-                        showNoPlayers();
-                    }
-                    isLoadingPlayers = false;
+                    // Now load all users
+                    db.collection("users")
+                            .get()
+                            .addOnSuccessListener(queryDocumentSnapshots -> {
+
+                                int playerCount = 0;
+
+                                for (QueryDocumentSnapshot document
+                                        : queryDocumentSnapshots) {
+
+                                    String playerUid = document.getId();
+
+                                    // Do not show yourself
+                                    if (playerUid.equals(currentUid)) {
+                                        continue;
+                                    }
+
+                                    // Do not show existing friends
+                                    if (friendUids.contains(playerUid)) {
+                                        continue;
+                                    }
+
+                                    String displayName =
+                                            getValue(document.getString("displayName"));
+
+                                    String game =
+                                            getValue(document.getString("game"));
+
+                                    String rank =
+                                            getValue(document.getString("rank"));
+
+                                    String role =
+                                            getValue(document.getString("role"));
+
+                                    String availability =
+                                            getValue(document.getString("availability"));
+
+                                    addPlayerCard(
+                                            playerUid,
+                                            displayName,
+                                            game,
+                                            rank,
+                                            role,
+                                            availability
+                                    );
+
+                                    playerCount++;
+                                }
+
+                                if (playerCount == 0) {
+                                    showNoPlayers();
+                                }
+
+                                isLoadingPlayers = false;
+                            })
+                            .addOnFailureListener(e -> {
+
+                                isLoadingPlayers = false;
+
+                                Toast.makeText(
+                                        SearchPlayerActivity.this,
+                                        "Failed to load players.",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                            });
                 })
                 .addOnFailureListener(e -> {
 
@@ -205,7 +249,7 @@ public class SearchPlayerActivity extends AppCompatActivity {
 
                     Toast.makeText(
                             SearchPlayerActivity.this,
-                            "Failed to load players.",
+                            "Failed to load friends.",
                             Toast.LENGTH_SHORT
                     ).show();
                 });

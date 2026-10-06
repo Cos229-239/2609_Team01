@@ -5,6 +5,9 @@ import android.view.View;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.util.List;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -25,6 +28,7 @@ public class HomeActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private TextView textNotificationBadge;
+    private LinearLayout friendsContainer;
 
 
     @Override
@@ -44,11 +48,7 @@ public class HomeActivity extends AppCompatActivity {
     // Hide badge until Firestore finishes loading
         textNotificationBadge.setVisibility(View.GONE);
 
-        LinearLayout friendsContainer = findViewById(R.id.friendsContainer);
-
-        addFriend(friendsContainer, "KP", "Kien", true);
-        addFriend(friendsContainer, "GA", "Gabriel", true);
-        addFriend(friendsContainer, "TF", "Tiffany", false);
+        friendsContainer = findViewById(R.id.friendsContainer);
 
         // Quick Actions
         Button buttonFindTeam = findViewById(R.id.buttonFindTeam);
@@ -139,6 +139,7 @@ public class HomeActivity extends AppCompatActivity {
         super.onResume();
 
         loadNotificationBadge();
+        loadFriends();
     }
 
     private void loadNotificationBadge() {
@@ -182,8 +183,7 @@ public class HomeActivity extends AppCompatActivity {
     private void addFriend(
             LinearLayout container,
             String initials,
-            String name,
-            boolean isOnline
+            String name
     ) {
 
         int size = (int) (72 * getResources().getDisplayMetrics().density);
@@ -222,13 +222,8 @@ public class HomeActivity extends AppCompatActivity {
 
         TextView onlineStatus = new TextView(this);
 
-        if (isOnline) {
-            onlineStatus.setText("● Online");
-            onlineStatus.setTextColor(Color.parseColor("#3FAE64"));
-        } else {
-            onlineStatus.setText("● Offline");
-            onlineStatus.setTextColor(Color.parseColor("#9E9E9E"));
-        }
+        onlineStatus.setText("● Friend");
+        onlineStatus.setTextColor(Color.parseColor("#6C4FB3"));
 
         onlineStatus.setTextSize(11);
         onlineStatus.setGravity(Gravity.CENTER);
@@ -237,5 +232,128 @@ public class HomeActivity extends AppCompatActivity {
         friendItem.addView(onlineStatus);
 
         container.addView(friendItem);
+    }
+
+    private void loadFriends() {
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser == null) {
+            return;
+        }
+
+        String currentUid = currentUser.getUid();
+
+        // Remove old friend cards
+        friendsContainer.removeAllViews();
+
+        db.collection("friends")
+                .whereArrayContains("members", currentUid)
+                .get()
+                .addOnSuccessListener(friendSnapshots -> {
+
+                    if (friendSnapshots.isEmpty()) {
+                        showNoFriends();
+                        return;
+                    }
+
+                    for (QueryDocumentSnapshot friendDocument : friendSnapshots) {
+
+                        List<String> members =
+                                (List<String>) friendDocument.get("members");
+
+                        if (members == null) {
+                            continue;
+                        }
+
+                        String friendUid = null;
+
+                        for (String uid : members) {
+
+                            if (!uid.equals(currentUid)) {
+                                friendUid = uid;
+                                break;
+                            }
+                        }
+
+                        if (friendUid == null) {
+                            continue;
+                        }
+
+                        db.collection("users")
+                                .document(friendUid)
+                                .get()
+                                .addOnSuccessListener(userDocument -> {
+
+                                    if (!userDocument.exists()) {
+                                        return;
+                                    }
+
+                                    String displayName =
+                                            userDocument.getString("displayName");
+
+                                    if (displayName == null
+                                            || displayName.trim().isEmpty()) {
+
+                                        displayName = "Player";
+                                    }
+
+                                    String initials =
+                                            getInitials(displayName);
+
+                                    addFriend(
+                                            friendsContainer,
+                                            initials,
+                                            displayName
+                                    );
+                                });
+                    }
+                })
+                .addOnFailureListener(e -> {
+
+                    Toast.makeText(
+                            HomeActivity.this,
+                            "Failed to load friends.",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                });
+    }
+
+    private String getInitials(String displayName) {
+
+        if (displayName == null || displayName.trim().isEmpty()) {
+            return "?";
+        }
+
+        String[] parts =
+                displayName.trim().split("\\s+");
+
+        if (parts.length >= 2) {
+
+            return parts[0]
+                    .substring(0, 1)
+                    .toUpperCase()
+
+                    + parts[1]
+                    .substring(0, 1)
+                    .toUpperCase();
+        }
+
+        return displayName
+                .substring(0, 1)
+                .toUpperCase();
+    }
+
+    private void showNoFriends() {
+
+        TextView noFriends = new TextView(this);
+
+        noFriends.setText("No friends yet");
+        noFriends.setTextSize(14);
+        noFriends.setTextColor(
+                Color.parseColor("#777777")
+        );
+
+        friendsContainer.addView(noFriends);
     }
 }

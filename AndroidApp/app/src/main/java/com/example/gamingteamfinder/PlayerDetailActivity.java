@@ -17,6 +17,7 @@ import com.google.firebase.firestore.FieldValue;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Arrays;
 
 public class PlayerDetailActivity extends AppCompatActivity {
 
@@ -58,7 +59,7 @@ public class PlayerDetailActivity extends AppCompatActivity {
                 getIntent().getBooleanExtra("FROM_NOTIFICATION", false);
 
         if (fromNotification) {
-            buttonRequestAdd.setText("Add");
+            buttonRequestAdd.setText("Accept");
         }
 
         buttonClose.setOnClickListener(v -> finish());
@@ -108,29 +109,132 @@ public class PlayerDetailActivity extends AppCompatActivity {
             return;
         }
 
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser == null) {
+
+            Toast.makeText(
+                    this,
+                    "Please log in first.",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            return;
+        }
+
+        String currentUid = currentUser.getUid();
+
         db.collection("playerRequests")
                 .document(requestId)
-                .update("status", "accepted")
-                .addOnSuccessListener(unused -> {
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
 
-                    Toast.makeText(
-                            PlayerDetailActivity.this,
-                            "Player added!",
-                            Toast.LENGTH_SHORT
-                    ).show();
+                    if (!documentSnapshot.exists()) {
 
-                    finish();
-                })
-                .addOnFailureListener(e -> {
+                        Toast.makeText(
+                                PlayerDetailActivity.this,
+                                "Request could not be found.",
+                                Toast.LENGTH_SHORT
+                        ).show();
 
-                    Toast.makeText(
-                            PlayerDetailActivity.this,
-                            "Failed to add player.",
-                            Toast.LENGTH_SHORT
-                    ).show();
+                        return;
+                    }
+
+                    String fromUid =
+                            documentSnapshot.getString("fromUid");
+
+                    String toUid =
+                            documentSnapshot.getString("toUid");
+
+                    if (fromUid == null || toUid == null) {
+
+                        Toast.makeText(
+                                PlayerDetailActivity.this,
+                                "Invalid request.",
+                                Toast.LENGTH_SHORT
+                        ).show();
+
+                        return;
+                    }
+
+                    // Always create the same friend document ID
+                    // no matter which user is A or B
+                    String friendId;
+
+                    if (fromUid.compareTo(toUid) < 0) {
+                        friendId = fromUid + "_" + toUid;
+                    } else {
+                        friendId = toUid + "_" + fromUid;
+                    }
+
+                    db.collection("users")
+                            .document(fromUid)
+                            .get()
+                            .addOnSuccessListener(fromUserDoc -> {
+
+                                String fromName =
+                                        getValue(fromUserDoc.getString("displayName"));
+
+                                db.collection("users")
+                                        .document(toUid)
+                                        .get()
+                                        .addOnSuccessListener(toUserDoc -> {
+
+                                            String toName =
+                                                    getValue(toUserDoc.getString("displayName"));
+
+                                            Map<String, Object> friend =
+                                                    new HashMap<>();
+
+                                            // Keep UID list for searching/filtering friends later
+                                            friend.put(
+                                                    "members",
+                                                    Arrays.asList(fromUid, toUid)
+                                            );
+
+                                            // Add readable usernames
+                                            friend.put("user1Uid", fromUid);
+                                            friend.put("user1Name", fromName);
+
+                                            friend.put("user2Uid", toUid);
+                                            friend.put("user2Name", toName);
+
+                                            friend.put(
+                                                    "createdAt",
+                                                    FieldValue.serverTimestamp()
+                                            );
+
+                                            db.collection("friends")
+                                                    .document(friendId)
+                                                    .set(friend)
+                                                    .addOnSuccessListener(unused -> {
+
+                                                        db.collection("playerRequests")
+                                                                .document(requestId)
+                                                                .update("status", "accepted")
+                                                                .addOnSuccessListener(unused2 -> {
+
+                                                                    Toast.makeText(
+                                                                            PlayerDetailActivity.this,
+                                                                            "Player added!",
+                                                                            Toast.LENGTH_SHORT
+                                                                    ).show();
+
+                                                                    finish();
+                                                                });
+                                                    })
+                                                    .addOnFailureListener(e -> {
+
+                                                        Toast.makeText(
+                                                                PlayerDetailActivity.this,
+                                                                "Failed: " + e.getMessage(),
+                                                                Toast.LENGTH_LONG
+                                                        ).show();
+                                                    });
+                                        });
+                            });
                 });
     }
-
     private void loadPlayer(String playerUid) {
 
         db.collection("users")
@@ -168,6 +272,7 @@ public class PlayerDetailActivity extends AppCompatActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
         if (currentUser == null) {
+
             Toast.makeText(
                     this,
                     "Please log in first.",
@@ -180,6 +285,7 @@ public class PlayerDetailActivity extends AppCompatActivity {
         String fromUid = currentUser.getUid();
 
         if (fromUid.equals(playerUid)) {
+
             Toast.makeText(
                     this,
                     "You cannot send a request to yourself.",
@@ -191,31 +297,60 @@ public class PlayerDetailActivity extends AppCompatActivity {
 
         String requestId = fromUid + "_" + playerUid;
 
-        Map<String, Object> request = new HashMap<>();
+        // Get sender profile
+        db.collection("users")
+                .document(fromUid)
+                .get()
+                .addOnSuccessListener(fromUserDoc -> {
 
-        request.put("fromUid", fromUid);
-        request.put("toUid", playerUid);
-        request.put("status", "pending");
-        request.put("createdAt", FieldValue.serverTimestamp());
+                    String fromName =
+                            getValue(fromUserDoc.getString("displayName"));
 
-        db.collection("playerRequests")
-                .document(requestId)
-                .set(request)
-                .addOnSuccessListener(unused -> {
+                    // Get receiver profile
+                    db.collection("users")
+                            .document(playerUid)
+                            .get()
+                            .addOnSuccessListener(toUserDoc -> {
 
-                    Toast.makeText(
-                            PlayerDetailActivity.this,
-                            "Request sent!",
-                            Toast.LENGTH_SHORT
-                    ).show();
-                })
-                .addOnFailureListener(e -> {
+                                String toName =
+                                        getValue(toUserDoc.getString("displayName"));
 
-                    Toast.makeText(
-                            PlayerDetailActivity.this,
-                            "Failed to send request.",
-                            Toast.LENGTH_SHORT
-                    ).show();
+                                Map<String, Object> request =
+                                        new HashMap<>();
+
+                                request.put("fromUid", fromUid);
+                                request.put("fromName", fromName);
+
+                                request.put("toUid", playerUid);
+                                request.put("toName", toName);
+
+                                request.put("status", "pending");
+
+                                request.put(
+                                        "createdAt",
+                                        FieldValue.serverTimestamp()
+                                );
+
+                                db.collection("playerRequests")
+                                        .document(requestId)
+                                        .set(request)
+                                        .addOnSuccessListener(unused -> {
+
+                                            Toast.makeText(
+                                                    PlayerDetailActivity.this,
+                                                    "Request sent!",
+                                                    Toast.LENGTH_SHORT
+                                            ).show();
+                                        })
+                                        .addOnFailureListener(e -> {
+
+                                            Toast.makeText(
+                                                    PlayerDetailActivity.this,
+                                                    "Failed to send request.",
+                                                    Toast.LENGTH_SHORT
+                                            ).show();
+                                        });
+                            });
                 });
     }
 
