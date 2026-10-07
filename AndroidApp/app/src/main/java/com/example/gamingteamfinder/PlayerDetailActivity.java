@@ -4,6 +4,9 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.content.Intent;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
@@ -54,27 +57,88 @@ public class PlayerDetailActivity extends AppCompatActivity {
 
         Button buttonClose = findViewById(R.id.buttonClose);
         Button buttonRequestAdd = findViewById(R.id.buttonRequestAdd);
+        boolean fromFriends =
+                getIntent().getBooleanExtra(
+                        "FROM_FRIENDS",
+                        false
+                );
+
+
+        ImageButton buttonHome = findViewById(R.id.buttonHome);
+        ImageButton buttonSearch = findViewById(R.id.buttonSearch);
+        ImageButton buttonMessages = findViewById(R.id.buttonMessages);
+        ImageButton buttonProfile = findViewById(R.id.buttonProfile);
+
+        buttonHome.setOnClickListener(v -> {
+            Intent intent = new Intent(
+                    PlayerDetailActivity.this,
+                    HomeActivity.class
+            );
+            startActivity(intent);
+        });
+
+        buttonSearch.setOnClickListener(v -> {
+            Intent intent = new Intent(
+                    PlayerDetailActivity.this,
+                    SearchPlayerActivity.class
+            );
+            startActivity(intent);
+        });
+
+        buttonMessages.setOnClickListener(v -> {
+            Toast.makeText(
+                    PlayerDetailActivity.this,
+                    "Messages coming soon",
+                    Toast.LENGTH_SHORT
+            ).show();
+        });
+
+        buttonProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(
+                    PlayerDetailActivity.this,
+                    ProfileActivity.class
+            );
+            startActivity(intent);
+        });
 
         fromNotification =
-                getIntent().getBooleanExtra("FROM_NOTIFICATION", false);
-
-        if (fromNotification) {
-            buttonRequestAdd.setText("Accept");
-        }
+                getIntent().getBooleanExtra(
+                        "FROM_NOTIFICATION",
+                        false
+                );
 
         buttonClose.setOnClickListener(v -> finish());
 
-        buttonRequestAdd.setOnClickListener(v -> {
+        if (fromFriends) {
 
-            if (fromNotification) {
+            // Already friends, hide Add button
+            buttonRequestAdd.setVisibility(View.GONE);
 
-                acceptPlayerRequest();
+            // Remove the extra right margin from Close
+            LinearLayout.LayoutParams closeParams =
+                    (LinearLayout.LayoutParams)
+                            buttonClose.getLayoutParams();
 
-            } else {
+            closeParams.setMarginEnd(0);
 
-                sendPlayerRequest();
-            }
-        });
+            buttonClose.setLayoutParams(closeParams);
+
+        } else if (fromNotification) {
+
+            buttonRequestAdd.setText("Accept");
+
+            buttonRequestAdd.setOnClickListener(v ->
+                    acceptPlayerRequest()
+            );
+
+        } else {
+
+            buttonRequestAdd.setText("Request to Add");
+
+            buttonRequestAdd.setOnClickListener(v ->
+                    sendPlayerRequest()
+            );
+        }
 
         playerUid = getIntent().getStringExtra("PLAYER_UID");
 

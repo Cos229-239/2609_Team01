@@ -10,6 +10,8 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.content.Intent;
+import android.widget.ImageButton;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -34,6 +36,50 @@ public class NotificationsActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
 
         requestsContainer = findViewById(R.id.requestsContainer);
+
+        ImageButton buttonHome = findViewById(R.id.buttonHome);
+        ImageButton buttonSearch = findViewById(R.id.buttonSearch);
+        ImageButton buttonMessages = findViewById(R.id.buttonMessages);
+        ImageButton buttonProfile = findViewById(R.id.buttonProfile);
+
+        buttonHome.setOnClickListener(v -> {
+
+            Intent intent = new Intent(
+                    NotificationsActivity.this,
+                    HomeActivity.class
+            );
+
+            startActivity(intent);
+        });
+
+        buttonSearch.setOnClickListener(v -> {
+
+            Intent intent = new Intent(
+                    NotificationsActivity.this,
+                    SearchPlayerActivity.class
+            );
+
+            startActivity(intent);
+        });
+
+        buttonMessages.setOnClickListener(v -> {
+
+            Toast.makeText(
+                    NotificationsActivity.this,
+                    "Messages coming soon",
+                    Toast.LENGTH_SHORT
+            ).show();
+        });
+
+        buttonProfile.setOnClickListener(v -> {
+
+            Intent intent = new Intent(
+                    NotificationsActivity.this,
+                    ProfileActivity.class
+            );
+
+            startActivity(intent);
+        });
 
         Button buttonBack = findViewById(R.id.buttonBack);
 

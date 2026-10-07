@@ -15,6 +15,7 @@ import android.widget.ImageButton;
 import android.widget.Button;
 import android.widget.Toast;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -55,12 +56,24 @@ public class HomeActivity extends AppCompatActivity {
         Button buttonFindDuo = findViewById(R.id.buttonFindDuo);
         Button buttonFindPlayers = findViewById(R.id.buttonFindPlayers);
         Button buttonTeam = findViewById(R.id.buttonTeam);
+        ImageView buttonFriends = findViewById(R.id.buttonFriends);
+
+        buttonFriends.setOnClickListener(v -> {
+
+            Intent intent = new Intent(
+                    HomeActivity.this,
+                    FriendsActivity.class
+            );
+
+            startActivity(intent);
+        });
 
         // Bottom Navigation
         ImageButton buttonHome = findViewById(R.id.buttonHome);
         ImageButton buttonSearch = findViewById(R.id.buttonSearch);
         ImageButton buttonMessages = findViewById(R.id.buttonMessages);
         ImageButton buttonProfile = findViewById(R.id.buttonProfile);
+
 
         // Notifications
         notificationContainer.setOnClickListener(v -> {
@@ -183,9 +196,9 @@ public class HomeActivity extends AppCompatActivity {
     private void addFriend(
             LinearLayout container,
             String initials,
-            String name
+            String name,
+            boolean isOnline
     ) {
-
         int size = (int) (72 * getResources().getDisplayMetrics().density);
         int margin = (int) (16 * getResources().getDisplayMetrics().density);
 
@@ -222,8 +235,20 @@ public class HomeActivity extends AppCompatActivity {
 
         TextView onlineStatus = new TextView(this);
 
-        onlineStatus.setText("● Friend");
-        onlineStatus.setTextColor(Color.parseColor("#6C4FB3"));
+        if (isOnline) {
+
+            onlineStatus.setText("● Online");
+            onlineStatus.setTextColor(
+                    Color.parseColor("#3FAE64")
+            );
+
+        } else {
+
+            onlineStatus.setText("● Offline");
+            onlineStatus.setTextColor(
+                    Color.parseColor("#9E9E9E")
+            );
+        }
 
         onlineStatus.setTextSize(11);
         onlineStatus.setGravity(Gravity.CENTER);
@@ -301,10 +326,17 @@ public class HomeActivity extends AppCompatActivity {
                                     String initials =
                                             getInitials(displayName);
 
+                                    Boolean onlineValue =
+                                            userDocument.getBoolean("isOnline");
+
+                                    boolean isOnline =
+                                            Boolean.TRUE.equals(onlineValue);
+
                                     addFriend(
                                             friendsContainer,
                                             initials,
-                                            displayName
+                                            displayName,
+                                            isOnline
                                     );
                                 });
                     }
