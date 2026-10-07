@@ -130,13 +130,15 @@ public class HomeActivity extends AppCompatActivity {
         });
 
 
-        // Messages - temporary
+        // Messages
         buttonMessages.setOnClickListener(v -> {
-            Toast.makeText(
+
+            Intent intent = new Intent(
                     HomeActivity.this,
-                    "Messages coming soon",
-                    Toast.LENGTH_SHORT
-            ).show();
+                    MessagesActivity.class
+            );
+
+            startActivity(intent);
         });
 
 

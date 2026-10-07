@@ -87,11 +87,12 @@ public class FriendsActivity extends AppCompatActivity {
 
         buttonMessages.setOnClickListener(v -> {
 
-            Toast.makeText(
+            Intent intent = new Intent(
                     FriendsActivity.this,
-                    "Messages coming soon",
-                    Toast.LENGTH_SHORT
-            ).show();
+                    MessagesActivity.class
+            );
+
+            startActivity(intent);
         });
 
         buttonProfile.setOnClickListener(v -> {
@@ -534,11 +535,22 @@ public class FriendsActivity extends AppCompatActivity {
 
         chatButton.setOnClickListener(v -> {
 
-            Toast.makeText(
+            Intent intent = new Intent(
                     FriendsActivity.this,
-                    "Message coming soon",
-                    Toast.LENGTH_SHORT
-            ).show();
+                    ConversationActivity.class
+            );
+
+            intent.putExtra(
+                    "FRIEND_UID",
+                    friendUid
+            );
+
+            intent.putExtra(
+                    "FRIEND_NAME",
+                    displayName
+            );
+
+            startActivity(intent);
         });
 
 
