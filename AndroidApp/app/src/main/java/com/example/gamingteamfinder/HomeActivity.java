@@ -6,8 +6,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.List;
+import java.util.ArrayList;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -29,7 +31,14 @@ public class HomeActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private TextView textNotificationBadge;
+    private TextView textMessageBadge;
+
     private LinearLayout friendsContainer;
+
+    private ListenerRegistration messageUnreadListener;
+
+    private final List<ListenerRegistration> homeFriendStatusListeners =
+            new ArrayList<>();
 
 
     @Override
@@ -43,11 +52,14 @@ public class HomeActivity extends AppCompatActivity {
 
     // Notification badge
         textNotificationBadge = findViewById(R.id.textNotificationBadge);
+        textMessageBadge =
+                findViewById(R.id.textMessageBadge);
         FrameLayout notificationContainer =
                 findViewById(R.id.notificationContainer);
 
     // Hide badge until Firestore finishes loading
         textNotificationBadge.setVisibility(View.GONE);
+        textMessageBadge.setVisibility(View.GONE);
 
         friendsContainer = findViewById(R.id.friendsContainer);
 
@@ -155,6 +167,20 @@ public class HomeActivity extends AppCompatActivity {
 
         loadNotificationBadge();
         loadFriends();
+        startMessageUnreadListener();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (messageUnreadListener != null) {
+
+            messageUnreadListener.remove();
+            messageUnreadListener = null;
+        }
+
+        clearHomeFriendStatusListeners();
     }
 
     private void loadNotificationBadge() {
@@ -195,8 +221,134 @@ public class HomeActivity extends AppCompatActivity {
                 });
     }
 
+    private void startMessageUnreadListener() {
+
+        FirebaseUser currentUser =
+                mAuth.getCurrentUser();
+
+        if (currentUser == null) {
+
+            textMessageBadge.setVisibility(
+                    View.GONE
+            );
+
+            return;
+        }
+
+
+        String currentUid =
+                currentUser.getUid();
+
+
+        if (messageUnreadListener != null) {
+
+            messageUnreadListener.remove();
+            messageUnreadListener = null;
+        }
+
+
+        messageUnreadListener =
+                db.collection("conversations")
+                        .whereArrayContains(
+                                "members",
+                                currentUid
+                        )
+                        .addSnapshotListener(
+                                (conversationSnapshots, error) -> {
+
+                                    if (error != null
+                                            || conversationSnapshots == null) {
+
+                                        textMessageBadge.setVisibility(
+                                                View.GONE
+                                        );
+
+                                        return;
+                                    }
+
+
+                                    long totalUnread = 0;
+
+
+                                    for (QueryDocumentSnapshot document
+                                            : conversationSnapshots) {
+
+                                        String user1Uid =
+                                                document.getString(
+                                                        "user1Uid"
+                                                );
+
+                                        String user2Uid =
+                                                document.getString(
+                                                        "user2Uid"
+                                                );
+
+
+                                        Long unreadCount = 0L;
+
+
+                                        if (currentUid.equals(user1Uid)) {
+
+                                            unreadCount =
+                                                    document.getLong(
+                                                            "user1UnreadCount"
+                                                    );
+
+                                        } else if (currentUid.equals(user2Uid)) {
+
+                                            unreadCount =
+                                                    document.getLong(
+                                                            "user2UnreadCount"
+                                                    );
+                                        }
+
+
+                                        if (unreadCount != null) {
+
+                                            totalUnread +=
+                                                    unreadCount;
+                                        }
+                                    }
+
+
+                                    if (totalUnread > 0) {
+
+                                        String badgeText;
+
+                                        if (totalUnread > 99) {
+
+                                            badgeText = "99+";
+
+                                        } else {
+
+                                            badgeText =
+                                                    String.valueOf(
+                                                            totalUnread
+                                                    );
+                                        }
+
+
+                                        textMessageBadge.setText(
+                                                badgeText
+                                        );
+
+                                        textMessageBadge.setVisibility(
+                                                View.VISIBLE
+                                        );
+
+                                    } else {
+
+                                        textMessageBadge.setVisibility(
+                                                View.GONE
+                                        );
+                                    }
+                                }
+                        );
+    }
+
     private void addFriend(
             LinearLayout container,
+            String friendUid,
             String initials,
             String name,
             boolean isOnline
@@ -259,6 +411,62 @@ public class HomeActivity extends AppCompatActivity {
         friendItem.addView(onlineStatus);
 
         container.addView(friendItem);
+        ListenerRegistration statusListener =
+                db.collection("users")
+                        .document(friendUid)
+                        .addSnapshotListener(
+                                (document, error) -> {
+
+                                    if (error != null
+                                            || document == null
+                                            || !document.exists()) {
+
+                                        return;
+                                    }
+
+
+                                    Boolean onlineValue =
+                                            document.getBoolean(
+                                                    "isOnline"
+                                            );
+
+                                    boolean online =
+                                            Boolean.TRUE.equals(
+                                                    onlineValue
+                                            );
+
+
+                                    if (online) {
+
+                                        onlineStatus.setText(
+                                                "● Online"
+                                        );
+
+                                        onlineStatus.setTextColor(
+                                                Color.parseColor(
+                                                        "#3FAE64"
+                                                )
+                                        );
+
+                                    } else {
+
+                                        onlineStatus.setText(
+                                                "● Offline"
+                                        );
+
+                                        onlineStatus.setTextColor(
+                                                Color.parseColor(
+                                                        "#9E9E9E"
+                                                )
+                                        );
+                                    }
+                                }
+                        );
+
+
+        homeFriendStatusListeners.add(
+                statusListener
+        );
     }
 
     private void loadFriends() {
@@ -270,6 +478,7 @@ public class HomeActivity extends AppCompatActivity {
         }
 
         String currentUid = currentUser.getUid();
+        clearHomeFriendStatusListeners();
 
         // Remove old friend cards
         friendsContainer.removeAllViews();
@@ -307,8 +516,11 @@ public class HomeActivity extends AppCompatActivity {
                             continue;
                         }
 
+                        String finalFriendUid =
+                                friendUid;
+
                         db.collection("users")
-                                .document(friendUid)
+                                .document(finalFriendUid)
                                 .get()
                                 .addOnSuccessListener(userDocument -> {
 
@@ -336,6 +548,7 @@ public class HomeActivity extends AppCompatActivity {
 
                                     addFriend(
                                             friendsContainer,
+                                            finalFriendUid,
                                             initials,
                                             displayName,
                                             isOnline
@@ -376,6 +589,17 @@ public class HomeActivity extends AppCompatActivity {
         return displayName
                 .substring(0, 1)
                 .toUpperCase();
+    }
+
+    private void clearHomeFriendStatusListeners() {
+
+        for (ListenerRegistration listener
+                : homeFriendStatusListeners) {
+
+            listener.remove();
+        }
+
+        homeFriendStatusListeners.clear();
     }
 
     private void showNoFriends() {

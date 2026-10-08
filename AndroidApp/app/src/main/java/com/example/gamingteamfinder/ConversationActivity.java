@@ -21,6 +21,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -48,8 +49,11 @@ public class ConversationActivity extends AppCompatActivity {
     private ScrollView messagesScrollView;
 
     private boolean messageListenerStarted = false;
+    private ListenerRegistration messageListenerRegistration;
+    private ListenerRegistration friendStatusListener;
     private boolean hasRenderedMessage = false;
     private int messageLoadVersion = 0;
+    private boolean isConversationVisible = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,7 +129,6 @@ public class ConversationActivity extends AppCompatActivity {
         if (friendUid != null
                 && !friendUid.isEmpty()) {
 
-            loadFriendStatus();
             prepareConversation();
         }
 
@@ -165,14 +168,58 @@ public class ConversationActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(document -> {
 
+                    if (!isConversationVisible) {
+                        return;
+                    }
+
                     if (document.exists()) {
 
+                        markConversationAsRead();
                         startMessageListener();
                     }
                 });
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
 
+        isConversationVisible = true;
+
+        startFriendStatusListener();
+
+        if (conversationId != null
+                && !messageListenerStarted) {
+
+            startMessageListener();
+            markConversationAsRead();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+
+        isConversationVisible = false;
+
+        if (messageListenerRegistration != null) {
+
+            messageListenerRegistration.remove();
+            messageListenerRegistration = null;
+        }
+
+        if (friendStatusListener != null) {
+
+            friendStatusListener.remove();
+            friendStatusListener = null;
+        }
+
+        messageListenerStarted = false;
+
+        // Stop any old async message load
+        messageLoadVersion++;
+
+        super.onStop();
+    }
     private void sendMessage() {
 
         FirebaseUser currentUser =
@@ -305,6 +352,17 @@ public class ConversationActivity extends AppCompatActivity {
                         sender = "user2";
                     }
 
+                    String unreadField;
+
+                    if (currentUid.equals(user1Uid)) {
+
+                        unreadField = "user2UnreadCount";
+
+                    } else {
+
+                        unreadField = "user1UnreadCount";
+                    }
+
 
                     // =========================
                     // Conversation summary
@@ -345,6 +403,11 @@ public class ConversationActivity extends AppCompatActivity {
                     conversation.put(
                             "updatedAt",
                             FieldValue.serverTimestamp()
+                    );
+
+                    conversation.put(
+                            unreadField,
+                            FieldValue.increment(1)
                     );
 
 
@@ -478,21 +541,25 @@ public class ConversationActivity extends AppCompatActivity {
 
     private void startMessageListener() {
 
-        if (messageListenerStarted) {
+        if (!isConversationVisible
+                || messageListenerStarted
+                || conversationId == null) {
+
             return;
         }
 
         messageListenerStarted = true;
 
 
-        db.collection("conversations")
-                .document(conversationId)
-                .collection("days")
-                .orderBy(
-                        "date",
-                        Query.Direction.ASCENDING
-                )
-                .addSnapshotListener((daySnapshots, error) -> {
+        messageListenerRegistration =
+                db.collection("conversations")
+                        .document(conversationId)
+                        .collection("days")
+                        .orderBy(
+                                "date",
+                                Query.Direction.ASCENDING
+                        )
+                        .addSnapshotListener((daySnapshots, error) -> {
 
                     if (error != null
                             || daySnapshots == null) {
@@ -557,6 +624,8 @@ public class ConversationActivity extends AppCompatActivity {
                             ScrollView.FOCUS_DOWN
                     )
             );
+
+            markConversationAsRead();
 
             return;
         }
@@ -943,41 +1012,130 @@ public class ConversationActivity extends AppCompatActivity {
         );
     }
 
-    private void loadFriendStatus() {
+    private void markConversationAsRead() {
 
-        db.collection("users")
-                .document(friendUid)
+        FirebaseUser currentUser =
+                mAuth.getCurrentUser();
+
+        if (!isConversationVisible
+                || currentUser == null
+                || conversationId == null) {
+
+            return;
+        }
+
+
+        String currentUid =
+                currentUser.getUid();
+
+
+        db.collection("conversations")
+                .document(conversationId)
                 .get()
                 .addOnSuccessListener(document -> {
 
-                    Boolean onlineValue =
-                            document.getBoolean("isOnline");
+                    if (!isConversationVisible) {
+                        return;
+                    }
 
-                    boolean isOnline =
-                            Boolean.TRUE.equals(onlineValue);
+                    if (!document.exists()) {
+                        return;
+                    }
+
+                    String user1Uid =
+                            document.getString("user1Uid");
+
+                    String unreadField;
 
 
-                    if (isOnline) {
+                    if (currentUid.equals(user1Uid)) {
 
-                        textFriendStatus.setText(
-                                "● Online"
-                        );
-
-                        textFriendStatus.setTextColor(
-                                Color.parseColor("#3FAE64")
-                        );
+                        unreadField =
+                                "user1UnreadCount";
 
                     } else {
 
-                        textFriendStatus.setText(
-                                "● Offline"
-                        );
-
-                        textFriendStatus.setTextColor(
-                                Color.parseColor("#9E9E9E")
-                        );
+                        unreadField =
+                                "user2UnreadCount";
                     }
+
+
+                    db.collection("conversations")
+                            .document(conversationId)
+                            .update(
+                                    unreadField,
+                                    0
+                            );
                 });
+    }
+
+    private void startFriendStatusListener() {
+
+        if (friendUid == null
+                || friendUid.isEmpty()) {
+
+            return;
+        }
+
+
+        if (friendStatusListener != null) {
+
+            friendStatusListener.remove();
+            friendStatusListener = null;
+        }
+
+
+        friendStatusListener =
+                db.collection("users")
+                        .document(friendUid)
+                        .addSnapshotListener(
+                                (document, error) -> {
+
+                                    if (error != null
+                                            || document == null
+                                            || !document.exists()) {
+
+                                        return;
+                                    }
+
+
+                                    Boolean onlineValue =
+                                            document.getBoolean(
+                                                    "isOnline"
+                                            );
+
+                                    boolean isOnline =
+                                            Boolean.TRUE.equals(
+                                                    onlineValue
+                                            );
+
+
+                                    if (isOnline) {
+
+                                        textFriendStatus.setText(
+                                                "● Online"
+                                        );
+
+                                        textFriendStatus.setTextColor(
+                                                Color.parseColor(
+                                                        "#3FAE64"
+                                                )
+                                        );
+
+                                    } else {
+
+                                        textFriendStatus.setText(
+                                                "● Offline"
+                                        );
+
+                                        textFriendStatus.setTextColor(
+                                                Color.parseColor(
+                                                        "#9E9E9E"
+                                                )
+                                        );
+                                    }
+                                }
+                        );
     }
 
 

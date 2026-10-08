@@ -210,16 +210,42 @@
             app:tint="#6B6B75"
             android:contentDescription="Search" />
 
-        <ImageButton
-            android:id="@+id/buttonMessages"
+        <FrameLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:src="@drawable/ic_nav_messages"
-            android:background="@android:color/transparent"
-            android:scaleType="center"
-            app:tint="#6B6B75"
-            android:contentDescription="Messages" />
+            android:layout_weight="1">
+
+            <ImageButton
+                android:id="@+id/buttonMessages"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_nav_messages"
+                android:background="@android:color/transparent"
+                android:scaleType="center"
+                app:tint="#6B6B75"
+                android:contentDescription="Messages" />
+
+            <TextView
+                android:id="@+id/textMessageBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="22dp"
+                android:minWidth="22dp"
+                android:layout_gravity="top|center_horizontal"
+                android:layout_marginTop="8dp"
+                android:translationX="18dp"
+                android:gravity="center"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"
+                android:text="1"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="11sp"
+                android:background="@drawable/notification_badge_background"
+                android:visibility="gone"
+                android:clickable="false"
+                android:focusable="false" />
+
+        </FrameLayout>
 
         <ImageButton
             android:id="@+id/buttonProfile"

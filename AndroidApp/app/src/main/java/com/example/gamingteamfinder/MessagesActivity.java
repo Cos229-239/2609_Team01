@@ -9,14 +9,17 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Button;
+import android.widget.FrameLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
+import android.graphics.drawable.GradientDrawable;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -24,6 +27,7 @@ import java.util.Locale;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
 
 public class MessagesActivity extends AppCompatActivity {
 
@@ -31,6 +35,10 @@ public class MessagesActivity extends AppCompatActivity {
     private FirebaseFirestore db;
 
     private LinearLayout messagesContainer;
+    private ListenerRegistration conversationsListener;
+    private int messagesLoadVersion = 0;
+    private final List<ListenerRegistration> friendStatusListeners =
+            new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,11 +126,26 @@ public class MessagesActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        loadConversations();
+        startConversationListener();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (conversationsListener != null) {
+
+            conversationsListener.remove();
+            conversationsListener = null;
+        }
+
+        clearFriendStatusListeners();
+
+        messagesLoadVersion++;
     }
 
 
-    private void loadConversations() {
+    private void startConversationListener() {
 
         FirebaseUser currentUser =
                 mAuth.getCurrentUser();
@@ -136,88 +159,148 @@ public class MessagesActivity extends AppCompatActivity {
                 currentUser.getUid();
 
 
-        messagesContainer.removeAllViews();
+        if (conversationsListener != null) {
+
+            conversationsListener.remove();
+            conversationsListener = null;
+        }
 
 
-        Map<String, Timestamp> conversationTimes =
-                new HashMap<>();
+        conversationsListener =
+                db.collection("conversations")
+                        .whereArrayContains(
+                                "members",
+                                currentUid
+                        )
+                        .addSnapshotListener(
+                                (conversationSnapshots, error) -> {
+
+                                    if (error != null
+                                            || conversationSnapshots == null) {
+
+                                        return;
+                                    }
 
 
-        db.collection("conversations")
-                .whereArrayContains(
-                        "members",
-                        currentUid
-                )
-                .get()
-                .addOnSuccessListener(conversationSnapshots -> {
-
-                    for (QueryDocumentSnapshot document
-                            : conversationSnapshots) {
-
-                        List<String> members =
-                                (List<String>)
-                                        document.get("members");
+                                    int currentLoadVersion =
+                                            ++messagesLoadVersion;
 
 
-                        if (members == null) {
-                            continue;
-                        }
+                                    clearFriendStatusListeners();
+
+                                    messagesContainer.removeAllViews();
 
 
-                        String otherUid = null;
+                                    Map<String, Timestamp> conversationTimes =
+                                            new HashMap<>();
+
+                                    Map<String, Long> unreadCounts =
+                                            new HashMap<>();
 
 
-                        for (String uid : members) {
+                                    for (QueryDocumentSnapshot document
+                                            : conversationSnapshots) {
 
-                            if (!uid.equals(currentUid)) {
-
-                                otherUid = uid;
-                                break;
-                            }
-                        }
+                                        List<String> members =
+                                                (List<String>)
+                                                        document.get("members");
 
 
-                        if (otherUid == null) {
-                            continue;
-                        }
+                                        if (members == null) {
+                                            continue;
+                                        }
 
 
-                        Timestamp updatedAt =
-                                document.getTimestamp(
-                                        "updatedAt"
-                                );
+                                        String otherUid = null;
 
 
-                        if (updatedAt != null) {
+                                        for (String uid : members) {
 
-                            conversationTimes.put(
-                                    otherUid,
-                                    updatedAt
-                            );
-                        }
-                    }
+                                            if (!uid.equals(currentUid)) {
+
+                                                otherUid = uid;
+                                                break;
+                                            }
+                                        }
 
 
-                    loadFriendsForMessages(
-                            currentUid,
-                            conversationTimes
-                    );
+                                        if (otherUid == null) {
+                                            continue;
+                                        }
 
-                })
-                .addOnFailureListener(e -> {
 
-                    loadFriendsForMessages(
-                            currentUid,
-                            conversationTimes
-                    );
+                                        Timestamp updatedAt =
+                                                document.getTimestamp(
+                                                        "updatedAt"
+                                                );
 
-                });
+
+                                        if (updatedAt != null) {
+
+                                            conversationTimes.put(
+                                                    otherUid,
+                                                    updatedAt
+                                            );
+                                        }
+
+
+                                        String user1Uid =
+                                                document.getString(
+                                                        "user1Uid"
+                                                );
+
+
+                                        Long unreadCount;
+
+
+                                        if (currentUid.equals(user1Uid)) {
+
+                                            unreadCount =
+                                                    document.getLong(
+                                                            "user1UnreadCount"
+                                                    );
+
+                                        } else {
+
+                                            unreadCount =
+                                                    document.getLong(
+                                                            "user2UnreadCount"
+                                                    );
+                                        }
+
+
+                                        if (unreadCount == null) {
+                                            unreadCount = 0L;
+                                        }
+
+
+                                        unreadCounts.put(
+                                                otherUid,
+                                                unreadCount
+                                        );
+                                    }
+
+
+                                    loadFriendsForMessages(
+                                            currentUid,
+                                            conversationTimes,
+                                            unreadCounts,
+                                            currentLoadVersion
+                                    );
+                                }
+                        );
     }
 
     private void loadFriendsForMessages(
             String currentUid,
-            Map<String, Timestamp> conversationTimes
+            Map<String, Timestamp> conversationTimes,
+            Map<String, Long> unreadCounts,
+            int loadVersion
     ) {
+
+        if (loadVersion != messagesLoadVersion) {
+            return;
+        }
 
         db.collection("friends")
                 .whereArrayContains(
@@ -226,6 +309,10 @@ public class MessagesActivity extends AppCompatActivity {
                 )
                 .get()
                 .addOnSuccessListener(friendSnapshots -> {
+
+                    if (loadVersion != messagesLoadVersion) {
+                        return;
+                    }
 
                     if (friendSnapshots.isEmpty()) {
 
@@ -274,6 +361,10 @@ public class MessagesActivity extends AppCompatActivity {
                                 .get()
                                 .addOnSuccessListener(userDocument -> {
 
+                                    if (loadVersion != messagesLoadVersion) {
+                                        return;
+                                    }
+
                                     if (!userDocument.exists()) {
                                         return;
                                     }
@@ -283,6 +374,12 @@ public class MessagesActivity extends AppCompatActivity {
                                             userDocument.getString(
                                                     "displayName"
                                             );
+
+                                    Boolean onlineValue =
+                                            userDocument.getBoolean("isOnline");
+
+                                    boolean isOnline =
+                                            Boolean.TRUE.equals(onlineValue);
 
 
                                     if (displayName == null
@@ -316,6 +413,14 @@ public class MessagesActivity extends AppCompatActivity {
                                                     finalFriendUid
                                             );
 
+                                    Long unreadCount =
+                                            unreadCounts.get(
+                                                    finalFriendUid
+                                            );
+
+                                    if (unreadCount == null) {
+                                        unreadCount = 0L;
+                                    }
 
                                     if (conversationUpdatedAt != null) {
 
@@ -323,7 +428,10 @@ public class MessagesActivity extends AppCompatActivity {
                                                 conversationId,
                                                 finalFriendUid,
                                                 displayName,
-                                                conversationUpdatedAt
+                                                conversationUpdatedAt,
+                                                unreadCount,
+                                                loadVersion,
+                                                isOnline
                                         );
 
                                     } else {
@@ -332,7 +440,9 @@ public class MessagesActivity extends AppCompatActivity {
                                                 finalFriendUid,
                                                 displayName,
                                                 "Start a conversation",
-                                                null
+                                                null,
+                                                0,
+                                                isOnline
                                         );
                                     }
 
@@ -341,6 +451,10 @@ public class MessagesActivity extends AppCompatActivity {
 
                 })
                 .addOnFailureListener(e -> {
+
+                    if (loadVersion != messagesLoadVersion) {
+                        return;
+                    }
 
                     showNoMessages();
 
@@ -351,7 +465,9 @@ public class MessagesActivity extends AppCompatActivity {
             String friendUid,
             String displayName,
             String lastMessage,
-            Timestamp lastMessageTime
+            Timestamp lastMessageTime,
+            long unreadCount,
+            boolean isOnline
     ) {
 
         LinearLayout row =
@@ -373,30 +489,41 @@ public class MessagesActivity extends AppCompatActivity {
         );
 
 
-        // Avatar
-        TextView avatar =
-                new TextView(this);
+        // Avatar container
+        FrameLayout avatarContainer =
+                new FrameLayout(this);
 
-        LinearLayout.LayoutParams avatarParams =
+        LinearLayout.LayoutParams avatarContainerParams =
                 new LinearLayout.LayoutParams(
                         dp(58),
                         dp(58)
                 );
 
-        avatarParams.setMargins(
+        avatarContainerParams.setMargins(
                 0,
                 0,
                 dp(14),
                 0
         );
 
-        avatar.setLayoutParams(
-                avatarParams
+        avatarContainer.setLayoutParams(
+                avatarContainerParams
         );
 
-        avatar.setGravity(
-                Gravity.CENTER
-        );
+
+// Avatar
+        TextView avatar =
+                new TextView(this);
+
+        FrameLayout.LayoutParams avatarParams =
+                new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.MATCH_PARENT
+                );
+
+        avatar.setLayoutParams(avatarParams);
+
+        avatar.setGravity(Gravity.CENTER);
 
         avatar.setText(
                 getInitials(displayName)
@@ -415,6 +542,129 @@ public class MessagesActivity extends AppCompatActivity {
 
         avatar.setBackgroundResource(
                 R.drawable.friend_avatar_background
+        );
+
+
+// Online / Offline dot
+        TextView statusDot =
+                new TextView(this);
+
+        FrameLayout.LayoutParams dotParams =
+                new FrameLayout.LayoutParams(
+                        dp(14),
+                        dp(14),
+                        Gravity.END | Gravity.BOTTOM
+                );
+
+        dotParams.setMargins(
+                0,
+                0,
+                dp(1),
+                dp(1)
+        );
+
+        statusDot.setLayoutParams(dotParams);
+
+
+        GradientDrawable dotBackground =
+                new GradientDrawable();
+
+        dotBackground.setShape(
+                GradientDrawable.OVAL
+        );
+
+        if (isOnline) {
+
+            dotBackground.setColor(
+                    Color.parseColor("#3FAE64")
+            );
+
+        } else {
+
+            dotBackground.setColor(
+                    Color.parseColor("#9E9E9E")
+            );
+        }
+
+        dotBackground.setStroke(
+                dp(2),
+                Color.WHITE
+        );
+
+        statusDot.setBackground(
+                dotBackground
+        );
+
+
+        avatarContainer.addView(avatar);
+        avatarContainer.addView(statusDot);
+
+        ListenerRegistration statusListener =
+                db.collection("users")
+                        .document(friendUid)
+                        .addSnapshotListener(
+                                (document, error) -> {
+
+                                    if (error != null
+                                            || document == null
+                                            || !document.exists()) {
+
+                                        return;
+                                    }
+
+
+                                    Boolean onlineValue =
+                                            document.getBoolean(
+                                                    "isOnline"
+                                            );
+
+                                    boolean online =
+                                            Boolean.TRUE.equals(
+                                                    onlineValue
+                                            );
+
+
+                                    GradientDrawable liveDotBackground =
+                                            new GradientDrawable();
+
+                                    liveDotBackground.setShape(
+                                            GradientDrawable.OVAL
+                                    );
+
+
+                                    if (online) {
+
+                                        liveDotBackground.setColor(
+                                                Color.parseColor(
+                                                        "#3FAE64"
+                                                )
+                                        );
+
+                                    } else {
+
+                                        liveDotBackground.setColor(
+                                                Color.parseColor(
+                                                        "#9E9E9E"
+                                                )
+                                        );
+                                    }
+
+
+                                    liveDotBackground.setStroke(
+                                            dp(2),
+                                            Color.WHITE
+                                    );
+
+
+                                    statusDot.setBackground(
+                                            liveDotBackground
+                                    );
+                                }
+                        );
+
+
+        friendStatusListeners.add(
+                statusListener
         );
 
 
@@ -469,6 +719,30 @@ public class MessagesActivity extends AppCompatActivity {
                 0
         );
 
+        if (unreadCount > 0) {
+
+            messageText.setTypeface(
+                    null,
+                    Typeface.BOLD
+            );
+
+            messageText.setTextColor(
+                    Color.parseColor("#222222")
+            );
+        }
+
+        LinearLayout rightSection =
+                new LinearLayout(this);
+
+        rightSection.setOrientation(
+                LinearLayout.VERTICAL
+        );
+
+        rightSection.setGravity(
+                Gravity.END
+        );
+
+
         TextView timeText =
                 new TextView(this);
 
@@ -485,23 +759,103 @@ public class MessagesActivity extends AppCompatActivity {
         );
 
         timeText.setGravity(
-                Gravity.TOP | Gravity.END
+                Gravity.END
         );
 
-        timeText.setPadding(
-                dp(8),
-                dp(4),
-                0,
-                0
-        );
+
+        rightSection.addView(timeText);
+
+
+// Unread badge
+        if (unreadCount > 0) {
+
+            TextView unreadBadge =
+                    new TextView(this);
+
+            String badgeText;
+
+            if (unreadCount > 99) {
+                badgeText = "99+";
+            } else {
+                badgeText =
+                        String.valueOf(unreadCount);
+            }
+
+            unreadBadge.setText(badgeText);
+
+            unreadBadge.setTextSize(11);
+
+            unreadBadge.setTextColor(
+                    Color.WHITE
+            );
+
+            unreadBadge.setTypeface(
+                    null,
+                    Typeface.BOLD
+            );
+
+            unreadBadge.setGravity(
+                    Gravity.CENTER
+            );
+
+
+            LinearLayout.LayoutParams badgeParams =
+                    new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            dp(24)
+                    );
+
+            badgeParams.setMargins(
+                    dp(8),
+                    dp(6),
+                    0,
+                    0
+            );
+
+            unreadBadge.setLayoutParams(
+                    badgeParams
+            );
+
+            unreadBadge.setMinWidth(
+                    dp(24)
+            );
+
+            unreadBadge.setPadding(
+                    dp(6),
+                    0,
+                    dp(6),
+                    0
+            );
+
+
+            GradientDrawable badgeBackground =
+                    new GradientDrawable();
+
+            badgeBackground.setColor(
+                    Color.parseColor("#6C4FB3")
+            );
+
+            badgeBackground.setCornerRadius(
+                    dp(20)
+            );
+
+            unreadBadge.setBackground(
+                    badgeBackground
+            );
+
+
+            rightSection.addView(
+                    unreadBadge
+            );
+        }
 
 
         infoSection.addView(nameText);
         infoSection.addView(messageText);
 
-        row.addView(avatar);
+        row.addView(avatarContainer);
         row.addView(infoSection);
-        row.addView(timeText);
+        row.addView(rightSection);
 
         row.setOnClickListener(v -> {
 
@@ -688,7 +1042,10 @@ public class MessagesActivity extends AppCompatActivity {
             String conversationId,
             String friendUid,
             String displayName,
-            Timestamp conversationUpdatedAt
+            Timestamp conversationUpdatedAt,
+            long unreadCount,
+            int loadVersion,
+            boolean isOnline
     ) {
 
         db.collection("conversations")
@@ -701,6 +1058,10 @@ public class MessagesActivity extends AppCompatActivity {
                 .limit(1)
                 .get()
                 .addOnSuccessListener(daySnapshots -> {
+
+                    if (loadVersion != messagesLoadVersion) {
+                        return;
+                    }
 
                     String lastMessage =
                             "Start a conversation";
@@ -725,20 +1086,41 @@ public class MessagesActivity extends AppCompatActivity {
                             friendUid,
                             displayName,
                             lastMessage,
-                            conversationUpdatedAt
+                            conversationUpdatedAt,
+                            unreadCount,
+                            isOnline
                     );
 
                 })
+
+
                 .addOnFailureListener(e -> {
+
+                    if (loadVersion != messagesLoadVersion) {
+                        return;
+                    }
 
                     addConversationRow(
                             friendUid,
                             displayName,
                             "Start a conversation",
-                            conversationUpdatedAt
+                            conversationUpdatedAt,
+                            unreadCount,
+                            isOnline
                     );
 
                 });
+    }
+
+    private void clearFriendStatusListeners() {
+
+        for (ListenerRegistration listener
+                : friendStatusListeners) {
+
+            listener.remove();
+        }
+
+        friendStatusListeners.clear();
     }
 
     private int dp(int value) {

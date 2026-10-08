@@ -10,14 +10,18 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.ListenerRegistration;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 
 public class FriendsActivity extends AppCompatActivity {
@@ -29,6 +33,13 @@ public class FriendsActivity extends AppCompatActivity {
     private LinearLayout offlineFriendsContainer;
 
     private TextView textOnlineHeader;
+    private final List<ListenerRegistration> friendStatusListeners =
+            new ArrayList<>();
+
+    private final Map<String, Boolean> friendOnlineStates =
+            new HashMap<>();
+
+    private int friendsLoadVersion = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,6 +124,15 @@ public class FriendsActivity extends AppCompatActivity {
         loadFriendsList();
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        clearFriendStatusListeners();
+
+        friendsLoadVersion++;
+    }
+
     private void loadFriendsList() {
 
         FirebaseUser currentUser =
@@ -125,17 +145,27 @@ public class FriendsActivity extends AppCompatActivity {
         String currentUid =
                 currentUser.getUid();
 
+        int loadVersion =
+                ++friendsLoadVersion;
+
+        clearFriendStatusListeners();
+
+        friendOnlineStates.clear();
+
         onlineFriendsContainer.removeAllViews();
         offlineFriendsContainer.removeAllViews();
 
-        // Reset online count before loading friends
         textOnlineHeader.setText("Online (0)");
-        final int[] onlineCount = {0};
 
         db.collection("friends")
                 .whereArrayContains("members", currentUid)
                 .get()
                 .addOnSuccessListener(friendSnapshots -> {
+
+
+                    if (loadVersion != friendsLoadVersion) {
+                        return;
+                    }
 
                     if (friendSnapshots.isEmpty()) {
 
@@ -169,86 +199,122 @@ public class FriendsActivity extends AppCompatActivity {
                             continue;
                         }
 
+
                         String finalFriendUid =
                                 friendUid;
 
-                        db.collection("users")
-                                .document(friendUid)
-                                .get()
-                                .addOnSuccessListener(userDocument -> {
+                        ListenerRegistration statusListener =
+                                db.collection("users")
+                                        .document(finalFriendUid)
+                                        .addSnapshotListener(
+                                                (userDocument, error) -> {
 
-                                    if (!userDocument.exists()) {
-                                        return;
-                                    }
+                                                    if (loadVersion != friendsLoadVersion) {
+                                                        return;
+                                                    }
 
-                                    String displayName =
-                                            getValue(
-                                                    userDocument.getString(
-                                                            "displayName"
-                                                    )
-                                            );
+                                                    if (error != null
+                                                            || userDocument == null
+                                                            || !userDocument.exists()) {
 
-                                    String game =
-                                            getValue(
-                                                    userDocument.getString(
-                                                            "game"
-                                                    )
-                                            );
+                                                        return;
+                                                    }
 
-                                    String rank =
-                                            getValue(
-                                                    userDocument.getString(
-                                                            "rank"
-                                                    )
-                                            );
 
-                                    String role =
-                                            getValue(
-                                                    userDocument.getString(
-                                                            "role"
-                                                    )
-                                            );
+                                                    String displayName =
+                                                            getValue(
+                                                                    userDocument.getString(
+                                                                            "displayName"
+                                                                    )
+                                                            );
 
-                                    Boolean onlineValue =
-                                            userDocument.getBoolean("isOnline");
+                                                    String game =
+                                                            getValue(
+                                                                    userDocument.getString(
+                                                                            "game"
+                                                                    )
+                                                            );
 
-                                    boolean isOnline =
-                                            Boolean.TRUE.equals(onlineValue);
+                                                    String rank =
+                                                            getValue(
+                                                                    userDocument.getString(
+                                                                            "rank"
+                                                                    )
+                                                            );
 
-                                    if (isOnline) {
+                                                    String role =
+                                                            getValue(
+                                                                    userDocument.getString(
+                                                                            "role"
+                                                                    )
+                                                            );
 
-                                        onlineCount[0]++;
 
-                                        textOnlineHeader.setText(
-                                                "Online (" + onlineCount[0] + ")"
+                                                    Boolean onlineValue =
+                                                            userDocument.getBoolean(
+                                                                    "isOnline"
+                                                            );
+
+                                                    boolean isOnline =
+                                                            Boolean.TRUE.equals(
+                                                                    onlineValue
+                                                            );
+
+
+                                                    // Remove the old version of this friend row
+                                                    removeFriendRow(
+                                                            finalFriendUid
+                                                    );
+
+
+                                                    // Save newest online state
+                                                    friendOnlineStates.put(
+                                                            finalFriendUid,
+                                                            isOnline
+                                                    );
+
+
+                                                    if (isOnline) {
+
+                                                        addFriendRow(
+                                                                onlineFriendsContainer,
+                                                                finalFriendUid,
+                                                                displayName,
+                                                                game,
+                                                                rank,
+                                                                role,
+                                                                true
+                                                        );
+
+                                                    } else {
+
+                                                        addFriendRow(
+                                                                offlineFriendsContainer,
+                                                                finalFriendUid,
+                                                                displayName,
+                                                                game,
+                                                                rank,
+                                                                role,
+                                                                false
+                                                        );
+                                                    }
+
+
+                                                    updateOnlineHeader();
+                                                }
                                         );
 
-                                        addFriendRow(
-                                                onlineFriendsContainer,
-                                                finalFriendUid,
-                                                displayName,
-                                                game,
-                                                rank,
-                                                role,
-                                                true
-                                        );
 
-                                    } else {
-
-                                        addFriendRow(
-                                                offlineFriendsContainer,
-                                                finalFriendUid,
-                                                displayName,
-                                                game,
-                                                rank,
-                                                role,
-                                                false
-                                        );
-                                    }
-                                });
+                        friendStatusListeners.add(
+                                statusListener
+                        );
                     }
                 })
                 .addOnFailureListener(e -> {
+
+                    if (loadVersion != friendsLoadVersion) {
+                        return;
+                    }
 
                     Toast.makeText(
                             FriendsActivity.this,
@@ -270,6 +336,10 @@ public class FriendsActivity extends AppCompatActivity {
 
         LinearLayout friendRow =
                 new LinearLayout(this);
+
+        friendRow.setTag(
+                friendUid
+        );
 
         friendRow.setOrientation(
                 LinearLayout.HORIZONTAL
@@ -594,6 +664,73 @@ public class FriendsActivity extends AppCompatActivity {
         );
     }
 
+    private void updateOnlineHeader() {
+
+        int onlineCount = 0;
+
+        for (Boolean isOnline
+                : friendOnlineStates.values()) {
+
+            if (Boolean.TRUE.equals(isOnline)) {
+                onlineCount++;
+            }
+        }
+
+        textOnlineHeader.setText(
+                "Online (" + onlineCount + ")"
+        );
+    }
+
+
+    private void removeFriendRow(
+            String friendUid
+    ) {
+
+        removeFriendRowFromContainer(
+                onlineFriendsContainer,
+                friendUid
+        );
+
+        removeFriendRowFromContainer(
+                offlineFriendsContainer,
+                friendUid
+        );
+    }
+
+
+    private void removeFriendRowFromContainer(
+            LinearLayout container,
+            String friendUid
+    ) {
+
+        for (int i = container.getChildCount() - 1;
+             i >= 0;
+             i--) {
+
+            View child =
+                    container.getChildAt(i);
+
+            Object tag =
+                    child.getTag();
+
+            if (friendUid.equals(tag)) {
+
+                container.removeViewAt(i);
+            }
+        }
+    }
+
+
+    private void clearFriendStatusListeners() {
+
+        for (ListenerRegistration listener
+                : friendStatusListeners) {
+
+            listener.remove();
+        }
+
+        friendStatusListeners.clear();
+    }
     private String getValue(
             String value
     ) {
