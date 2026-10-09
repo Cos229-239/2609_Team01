@@ -100,11 +100,13 @@ public class ProfileActivity extends AppCompatActivity {
         });
 
         buttonNavMessages.setOnClickListener(v -> {
-            Toast.makeText(
+
+            Intent intent = new Intent(
                     ProfileActivity.this,
-                    "Messages coming soon",
-                    Toast.LENGTH_SHORT
-            ).show();
+                    MessagesActivity.class
+            );
+
+            startActivity(intent);
         });
 
         buttonNavProfile.setOnClickListener(v -> {

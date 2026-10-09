@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -39,6 +40,8 @@ public class MessagesActivity extends AppCompatActivity {
     private int messagesLoadVersion = 0;
     private final List<ListenerRegistration> friendStatusListeners =
             new ArrayList<>();
+    private final Map<String, Boolean> seenStatuses =
+            new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -188,6 +191,8 @@ public class MessagesActivity extends AppCompatActivity {
 
                                     clearFriendStatusListeners();
 
+                                    seenStatuses.clear();
+
                                     messagesContainer.removeAllViews();
 
 
@@ -248,6 +253,50 @@ public class MessagesActivity extends AppCompatActivity {
                                                 document.getString(
                                                         "user1Uid"
                                                 );
+
+                                        String lastMessageSenderUid =
+                                                document.getString(
+                                                        "lastMessageSenderUid"
+                                                );
+
+
+                                        Timestamp friendLastReadAt;
+
+
+                                        if (currentUid.equals(user1Uid)) {
+
+                                            friendLastReadAt =
+                                                    document.getTimestamp(
+                                                            "user2LastReadAt"
+                                                    );
+
+                                        } else {
+
+                                            friendLastReadAt =
+                                                    document.getTimestamp(
+                                                            "user1LastReadAt"
+                                                    );
+                                        }
+
+
+                                        boolean isSeen = false;
+
+
+                                        if (currentUid.equals(lastMessageSenderUid)
+                                                && updatedAt != null
+                                                && friendLastReadAt != null
+                                                && friendLastReadAt.compareTo(
+                                                updatedAt
+                                        ) >= 0) {
+
+                                            isSeen = true;
+                                        }
+
+
+                                        seenStatuses.put(
+                                                otherUid,
+                                                isSeen
+                                        );
 
 
                                         Long unreadCount;
@@ -765,8 +814,43 @@ public class MessagesActivity extends AppCompatActivity {
 
         rightSection.addView(timeText);
 
+        boolean isSeen =
+                Boolean.TRUE.equals(
+                        seenStatuses.get(friendUid)
+                );
 
-// Unread badge
+
+        if (isSeen) {
+
+            TextView seenText =
+                    new TextView(this);
+
+            seenText.setText("Seen");
+
+            seenText.setTextSize(11);
+
+            seenText.setTextColor(
+                    Color.parseColor("#6C4FB3")
+            );
+
+            seenText.setGravity(
+                    Gravity.END
+            );
+
+            seenText.setPadding(
+                    dp(8),
+                    dp(3),
+                    0,
+                    0
+            );
+
+
+            rightSection.addView(
+                    seenText
+            );
+        }
+
+        // Unread badge
         if (unreadCount > 0) {
 
             TextView unreadBadge =
@@ -879,7 +963,10 @@ public class MessagesActivity extends AppCompatActivity {
         });
 
 
-        messagesContainer.addView(row);
+        addConversationRowSorted(
+                row,
+                lastMessageTime
+        );
     }
 
 
@@ -1122,6 +1209,58 @@ public class MessagesActivity extends AppCompatActivity {
 
         friendStatusListeners.clear();
     }
+    private void addConversationRowSorted(
+            View row,
+            Timestamp lastMessageTime
+    ) {
+
+        row.setTag(lastMessageTime);
+
+        int insertIndex =
+                messagesContainer.getChildCount();
+
+
+        for (int i = 0;
+             i < messagesContainer.getChildCount();
+             i++) {
+
+            View existingRow =
+                    messagesContainer.getChildAt(i);
+
+            Object tag =
+                    existingRow.getTag();
+
+            Timestamp existingTime = null;
+
+            if (tag instanceof Timestamp) {
+
+                existingTime =
+                        (Timestamp) tag;
+            }
+
+
+            // Conversations with messages go above
+            // friends who have never messaged
+            if (lastMessageTime != null) {
+
+                if (existingTime == null
+                        || lastMessageTime.compareTo(
+                        existingTime
+                ) > 0) {
+
+                    insertIndex = i;
+                    break;
+                }
+            }
+        }
+
+
+        messagesContainer.addView(
+                row,
+                insertIndex
+        );
+    }
+
 
     private int dp(int value) {
 

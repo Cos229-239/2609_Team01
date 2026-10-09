@@ -10,7 +10,6 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.content.Intent;
 import android.widget.ImageButton;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -64,11 +63,12 @@ public class NotificationsActivity extends AppCompatActivity {
 
         buttonMessages.setOnClickListener(v -> {
 
-            Toast.makeText(
+            Intent intent = new Intent(
                     NotificationsActivity.this,
-                    "Messages coming soon",
-                    Toast.LENGTH_SHORT
-            ).show();
+                    MessagesActivity.class
+            );
+
+            startActivity(intent);
         });
 
         buttonProfile.setOnClickListener(v -> {
@@ -83,7 +83,21 @@ public class NotificationsActivity extends AppCompatActivity {
 
         Button buttonBack = findViewById(R.id.buttonBack);
 
-        buttonBack.setOnClickListener(v -> finish());
+        buttonBack.setOnClickListener(v -> {
+
+            Intent intent = new Intent(
+                    NotificationsActivity.this,
+                    HomeActivity.class
+            );
+
+            intent.addFlags(
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP
+                            | Intent.FLAG_ACTIVITY_SINGLE_TOP
+            );
+
+            startActivity(intent);
+            finish();
+        });
     }
 
     @Override
