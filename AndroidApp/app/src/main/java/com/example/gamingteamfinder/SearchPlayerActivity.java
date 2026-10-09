@@ -57,7 +57,21 @@ public class SearchPlayerActivity extends AppCompatActivity {
         ImageButton buttonNavProfile = findViewById(R.id.buttonNavProfile);
 
         // Back
-        buttonBack.setOnClickListener(v -> finish());
+        buttonBack.setOnClickListener(v -> {
+
+            Intent intent = new Intent(
+                    SearchPlayerActivity.this,
+                    HomeActivity.class
+            );
+
+            intent.addFlags(
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP
+                            | Intent.FLAG_ACTIVITY_SINGLE_TOP
+            );
+
+            startActivity(intent);
+            finish();
+        });
 
         // Players tab
         tabPlayers.setOnClickListener(v -> {
@@ -97,11 +111,13 @@ public class SearchPlayerActivity extends AppCompatActivity {
         });
 
         buttonNavMessages.setOnClickListener(v -> {
-            Toast.makeText(
+
+            Intent intent = new Intent(
                     SearchPlayerActivity.this,
-                    "Messages coming soon",
-                    Toast.LENGTH_SHORT
-            ).show();
+                    MessagesActivity.class
+            );
+
+            startActivity(intent);
         });
 
         buttonNavProfile.setOnClickListener(v -> {

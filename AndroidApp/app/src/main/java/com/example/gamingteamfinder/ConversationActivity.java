@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -51,6 +52,8 @@ public class ConversationActivity extends AppCompatActivity {
     private boolean messageListenerStarted = false;
     private ListenerRegistration messageListenerRegistration;
     private ListenerRegistration friendStatusListener;
+    private ListenerRegistration readReceiptListener;
+    private Timestamp friendLastReadAt;
     private boolean hasRenderedMessage = false;
     private int messageLoadVersion = 0;
     private boolean isConversationVisible = false;
@@ -187,6 +190,7 @@ public class ConversationActivity extends AppCompatActivity {
         isConversationVisible = true;
 
         startFriendStatusListener();
+        startReadReceiptListener();
 
         if (conversationId != null
                 && !messageListenerStarted) {
@@ -211,6 +215,11 @@ public class ConversationActivity extends AppCompatActivity {
 
             friendStatusListener.remove();
             friendStatusListener = null;
+        }
+        if (readReceiptListener != null) {
+
+            readReceiptListener.remove();
+            readReceiptListener = null;
         }
 
         messageListenerStarted = false;
@@ -398,6 +407,10 @@ public class ConversationActivity extends AppCompatActivity {
                     conversation.put(
                             "user2Name",
                             user2Name
+                    );
+                    conversation.put(
+                            "lastMessageSenderUid",
+                            currentUid
                     );
 
                     conversation.put(
@@ -618,6 +631,7 @@ public class ConversationActivity extends AppCompatActivity {
                 );
             }
 
+            updateSeenReceipt();
 
             messagesScrollView.post(() ->
                     messagesScrollView.fullScroll(
@@ -808,6 +822,13 @@ public class ConversationActivity extends AppCompatActivity {
         messageGroup.setLayoutParams(
                 groupParams
         );
+
+        if (isMine && createdAt != null) {
+
+            messageGroup.setTag(
+                    createdAt
+            );
+        }
 
 
         // Message bubble
@@ -1046,6 +1067,7 @@ public class ConversationActivity extends AppCompatActivity {
                             document.getString("user1Uid");
 
                     String unreadField;
+                    String lastReadField;
 
 
                     if (currentUid.equals(user1Uid)) {
@@ -1053,20 +1075,200 @@ public class ConversationActivity extends AppCompatActivity {
                         unreadField =
                                 "user1UnreadCount";
 
+                        lastReadField =
+                                "user1LastReadAt";
+
                     } else {
 
                         unreadField =
                                 "user2UnreadCount";
+
+                        lastReadField =
+                                "user2LastReadAt";
                     }
+
+
+                    Map<String, Object> readUpdates =
+                            new HashMap<>();
+
+                    readUpdates.put(
+                            unreadField,
+                            0L
+                    );
+
+                    readUpdates.put(
+                            lastReadField,
+                            FieldValue.serverTimestamp()
+                    );
 
 
                     db.collection("conversations")
                             .document(conversationId)
-                            .update(
-                                    unreadField,
-                                    0
-                            );
+                            .update(readUpdates);
                 });
+    }
+
+    private void startReadReceiptListener() {
+
+        FirebaseUser currentUser =
+                mAuth.getCurrentUser();
+
+        if (!isConversationVisible
+                || currentUser == null
+                || conversationId == null) {
+
+            return;
+        }
+
+
+        if (readReceiptListener != null) {
+            return;
+        }
+
+
+        String currentUid =
+                currentUser.getUid();
+
+
+        readReceiptListener =
+                db.collection("conversations")
+                        .document(conversationId)
+                        .addSnapshotListener(
+                                (document, error) -> {
+
+                                    if (error != null
+                                            || document == null
+                                            || !document.exists()) {
+
+                                        return;
+                                    }
+
+
+                                    String user1Uid =
+                                            document.getString(
+                                                    "user1Uid"
+                                            );
+
+
+                                    String friendLastReadField;
+
+
+                                    if (currentUid.equals(user1Uid)) {
+
+                                        friendLastReadField =
+                                                "user2LastReadAt";
+
+                                    } else {
+
+                                        friendLastReadField =
+                                                "user1LastReadAt";
+                                    }
+
+
+                                    friendLastReadAt =
+                                            document.getTimestamp(
+                                                    friendLastReadField
+                                            );
+
+
+                                    updateSeenReceipt();
+                                }
+                        );
+    }
+
+    private void updateSeenReceipt() {
+
+        LinearLayout seenMessageGroup = null;
+
+        Timestamp latestSeenTime = null;
+
+
+        for (int i = 0;
+             i < conversationContainer.getChildCount();
+             i++) {
+
+            View child =
+                    conversationContainer.getChildAt(i);
+
+            Object tag =
+                    child.getTag();
+
+
+            if (!(child instanceof LinearLayout)
+                    || !(tag instanceof Timestamp)) {
+
+                continue;
+            }
+
+
+            LinearLayout messageGroup =
+                    (LinearLayout) child;
+
+
+            // Remove old Seen text if there is one
+            while (messageGroup.getChildCount() > 2) {
+
+                messageGroup.removeViewAt(
+                        messageGroup.getChildCount() - 1
+                );
+            }
+
+
+            Timestamp messageTime =
+                    (Timestamp) tag;
+
+
+            if (friendLastReadAt != null
+                    && messageTime.compareTo(
+                    friendLastReadAt
+            ) <= 0) {
+
+                if (latestSeenTime == null
+                        || messageTime.compareTo(
+                        latestSeenTime
+                ) > 0) {
+
+                    latestSeenTime =
+                            messageTime;
+
+                    seenMessageGroup =
+                            messageGroup;
+                }
+            }
+        }
+
+
+        if (seenMessageGroup == null) {
+            return;
+        }
+
+
+        TextView seenText =
+                new TextView(this);
+
+        seenText.setText("Seen");
+
+        seenText.setTextSize(11);
+
+        seenText.setTextColor(
+                Color.parseColor("#6C4FB3")
+        );
+
+        seenText.setGravity(
+                Gravity.END
+        );
+
+        seenText.setPadding(
+                dp(6),
+                dp(1),
+                dp(6),
+                0
+        );
+
+
+        seenMessageGroup.addView(
+                seenText
+        );
     }
 
     private void startFriendStatusListener() {
