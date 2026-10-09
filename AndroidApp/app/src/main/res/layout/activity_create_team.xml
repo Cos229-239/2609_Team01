@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Create Team"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Team Name -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Team Name"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/editTeamName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter team name"
+            android:inputType="text"
+            android:maxLength="40"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Game -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Game"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:id="@+id/gameRadioGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="20dp">
+
+            <RadioButton
+                android:id="@+id/radioLeague"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="League of Legends" />
+
+            <RadioButton
+                android:id="@+id/radioValorant"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Valorant" />
+
+        </RadioGroup>
+
+        <!-- Rank -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Rank Range"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select up to 2 ranks"
+            android:textSize="14sp"
+            android:layout_marginBottom="10dp" />
+
+
+        <!-- ========================= -->
+        <!-- LEAGUE OF LEGENDS RANKS -->
+        <!-- ========================= -->
+
+        <GridLayout
+            android:id="@+id/leagueRanksLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="3"
+            android:visibility="gone"
+            android:layout_marginBottom="20dp">
+
+
+            <ImageButton
+                android:id="@+id/rankIron"
+                android:layout_width="100dp"
+                android:layout_height="80dp"
+                android:src="@drawable/lol_iron"
+                android:contentDescription="Iron Rank"
+                android:tag="Iron"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:background="#E0E0E0" />
+
+            <ImageButton
+                android:id="@+id/rankBronze"
+                android:layout_width="100dp"
+                android:layout_height="80dp"
+                android:src="@drawable/lol_bronze"
+                android:contentDescription="Bronze Rank"
+                android:tag="Bronze"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:background="#E0E0E0" />
+
+            <ImageButton
+                android:id="@+id/rankSilver"
+                android:layout_width="100dp"
+                android:layout_height="80dp"
+                android:src="@drawable/lol_silver"
+                android:contentDescription="Silver Rank"
+                android:tag="Silver"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:background="#E0E0E0" />
+
+            <ImageButton
+                android:id="@+id/rankGold"
+                android:layout_width="100dp"
+                android:layout_height="80dp"
+                android:src="@drawable/lol_gold"
+                android:contentDescription="Gold Rank"
+                android:tag="Gold"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:background="#E0E0E0" />
+
+            <ImageButton
+                android:id="@+id/rankPlatinum"
+                android:layout_width="100dp"
+                android:layout_height="80dp"
+                android:src="@drawable/lol_platinum"
+                android:contentDescription="Platinum Rank"
+                android:tag="Platinum"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:background="#E0E0E0" />
+
+            <ImageButton
+                android:id="@+id/rankEmerald"
+                android:layout_width="100dp"
+                android:layout_height="80dp"
+                android:src="@drawable/lol_emerald"
+                android:contentDescription="Emerald Rank"
+                android:tag="Emerald"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:background="#E0E0E0" />
+
+            <ImageButton
+                android:id="@+id/rankDiamond"
+                android:layout_width="100dp"
+                android:layout_height="80dp"
+                android:src="@drawable/lol_diamond"
+                android:contentDescription="Diamond Rank"
+                android:tag="Diamond"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:background="#E0E0E0" />
+
+            <ImageButton
+                android:id="@+id/rankMaster"
+                android:layout_width="100dp"
+                android:layout_height="80dp"
+                android:src="@drawable/lol_master"
+                android:contentDescription="Master Rank"
+                android:tag="Master"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:background="#E0E0E0" />
+
+            <ImageButton
+                android:id="@+id/rankGrandmaster"
+                android:layout_width="100dp"
+                android:layout_height="80dp"
+                android:src="@drawable/lol_grandmaster"
+                android:contentDescription="Grandmaster Rank"
+                android:tag="Grandmaster"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:background="#E0E0E0" />
+
+            <ImageButton
+                android:id="@+id/rankChallenger"
+                android:layout_width="100dp"
+                android:layout_height="80dp"
+                android:src="@drawable/lol_challenger"
+                android:contentDescription="Challenger Rank"
+                android:tag="Challenger"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:background="#E0E0E0" />
+
+        </GridLayout>
+
+
+        <!-- ========================= -->
+        <!-- VALORANT RANKS -->
+        <!-- ========================= -->
+
+        <GridLayout
+            android:id="@+id/valorantRanksLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="3"
+            android:visibility="gone"
+            android:layout_marginBottom="20dp">
+
+            <Button
+                android:id="@+id/valIron"
+                android:layout_width="100dp"
+                android:layout_height="70dp"
+                android:text="Iron"
+                android:tag="Iron" />
+
+            <Button
+                android:id="@+id/valBronze"
+                android:layout_width="100dp"
+                android:layout_height="70dp"
+                android:text="Bronze"
+                android:tag="Bronze" />
+
+            <Button
+                android:id="@+id/valSilver"
+                android:layout_width="100dp"
+                android:layout_height="70dp"
+                android:text="Silver"
+                android:tag="Silver" />
+
+            <Button
+                android:id="@+id/valGold"
+                android:layout_width="100dp"
+                android:layout_height="70dp"
+                android:text="Gold"
+                android:tag="Gold" />
+
+            <Button
+                android:id="@+id/valPlatinum"
+                android:layout_width="100dp"
+                android:layout_height="70dp"
+                android:text="Platinum"
+                android:tag="Platinum" />
+
+            <Button
+                android:id="@+id/valDiamond"
+                android:layout_width="100dp"
+                android:layout_height="70dp"
+                android:text="Diamond"
+                android:tag="Diamond" />
+
+            <Button
+                android:id="@+id/valAscendant"
+                android:layout_width="100dp"
+                android:layout_height="70dp"
+                android:text="Ascendant"
+                android:tag="Ascendant" />
+
+            <Button
+                android:id="@+id/valImmortal"
+                android:layout_width="100dp"
+                android:layout_height="70dp"
+                android:text="Immortal"
+                android:tag="Immortal" />
+
+            <Button
+                android:id="@+id/valRadiant"
+                android:layout_width="100dp"
+                android:layout_height="70dp"
+                android:text="Radiant"
+                android:tag="Radiant" />
+
+        </GridLayout>
+
+        <!-- Game Mode -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Game Mode"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:id="@+id/modeRadioGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="20dp">
+
+            <RadioButton
+                android:id="@+id/radioRanked"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Ranked" />
+
+            <RadioButton
+                android:id="@+id/radioCasual"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Casual" />
+
+        </RadioGroup>
+
+        <!-- Play Time -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Play Time"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="20dp">
+
+            <Button
+                android:id="@+id/buttonStartTime"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Start Time" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="  —  "
+                android:textSize="20sp" />
+
+            <Button
+                android:id="@+id/buttonEndTime"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="End Time" />
+
+        </LinearLayout>
+
+        <!-- Days -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Days"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/checkMonday"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mon" />
+
+            <CheckBox
+                android:id="@+id/checkTuesday"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tue" />
+
+            <CheckBox
+                android:id="@+id/checkWednesday"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Wed" />
+
+            <CheckBox
+                android:id="@+id/checkThursday"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Thu" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="20dp">
+
+            <CheckBox
+                android:id="@+id/checkFriday"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fri" />
+
+            <CheckBox
+                android:id="@+id/checkSaturday"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sat" />
+
+            <CheckBox
+                android:id="@+id/checkSunday"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sun" />
+
+        </LinearLayout>
+
+        <!-- Voice Chat -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Voice Chat"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:id="@+id/voiceRadioGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="20dp">
+
+            <RadioButton
+                android:id="@+id/radioVoiceYes"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Yes" />
+
+            <RadioButton
+                android:id="@+id/radioVoiceNo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="No" />
+
+        </RadioGroup>
+
+        <!-- About -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="About Team (optional)"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/editAbout"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:gravity="top"
+            android:hint="Tell players about your team..."
+            android:inputType="textMultiLine"
+            android:maxLength="200"
+            android:padding="12dp"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Requirements -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Other Requirements (optional)"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/editRequirements"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:gravity="top"
+            android:hint="Rank, microphone, experience, etc."
+            android:inputType="textMultiLine"
+            android:maxLength="200"
+            android:padding="12dp"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Create Team -->
+        <Button
+            android:id="@+id/buttonCreateTeam"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Create Team"
+            android:textSize="18sp"
+            android:layout_marginBottom="30dp" />
+
+    </LinearLayout>
+
+</ScrollView>

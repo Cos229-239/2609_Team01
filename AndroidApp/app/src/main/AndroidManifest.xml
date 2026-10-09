@@ -15,6 +15,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GamingTeamFinder">
         <activity
+            android:name=".createTeam.CreateTeamActivity"
+            android:exported="false" />
+        <activity
             android:name=".SearchPlayerActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
