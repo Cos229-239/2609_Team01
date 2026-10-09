@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.view.Gravity;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import com.example.gamingteamfinder.createTeam.CreateTeamActivity;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -64,7 +65,7 @@ public class HomeActivity extends AppCompatActivity {
 
         // Create Team
         buttonTeam.setOnClickListener(v -> {
-            Intent intent = new Intent(HomeActivity.this, TeamActivity.class);
+            Intent intent = new Intent(HomeActivity.this, CreateTeamActivity.class);
             startActivity(intent);
         });
 
