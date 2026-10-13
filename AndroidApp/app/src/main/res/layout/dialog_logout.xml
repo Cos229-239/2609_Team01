@@ -1,0 +1,74 @@
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp"
+    android:background="@drawable/bg_logout_dialog">
+
+    <!-- Log Out Icon -->
+    <ImageView
+        android:layout_width="84dp"
+        android:layout_height="84dp"
+        android:padding="17dp"
+        android:src="@drawable/ic_account_logout"
+        android:background="@drawable/bg_settings_icon"
+        app:tint="#6C4FB3"
+        android:contentDescription="Log Out Icon"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Title -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Oh no! You're leaving..."
+        android:textSize="19sp"
+        android:textStyle="bold"
+        android:textColor="#30364F"
+        android:gravity="center"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Description -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Are you sure you want to log out?"
+        android:textSize="14sp"
+        android:textColor="#747887"
+        android:gravity="center"
+        android:layout_marginBottom="28dp" />
+
+    <!-- Cancel Button -->
+    <TextView
+        android:id="@+id/buttonCancelLogout"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:gravity="center"
+        android:text="Nah, Just Kidding"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/bg_logout_button"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_marginBottom="12dp" />
+
+    <!-- Confirm Log Out -->
+    <TextView
+        android:id="@+id/buttonConfirmLogout"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:gravity="center"
+        android:text="Yes, Log Me Out"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#6C4FB3"
+        android:background="@drawable/bg_logout_button_outline"
+        android:clickable="true"
+        android:focusable="true" />
+
+</LinearLayout>

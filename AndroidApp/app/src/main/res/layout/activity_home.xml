@@ -72,6 +72,19 @@
                     app:tint="#6B6B75"
                     android:contentDescription="Friends" />
 
+                <ImageButton
+                    android:id="@+id/buttonSettings"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginStart="8dp"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_menu"
+                    app:tint="#6B6B75"
+                    android:background="@android:color/transparent"
+                    android:scaleType="centerInside"
+                    android:contentDescription="Settings" />
+
             </LinearLayout>
 
             <TextView

@@ -70,7 +70,20 @@ public class HomeActivity extends AppCompatActivity {
         Button buttonFindPlayers = findViewById(R.id.buttonFindPlayers);
         Button buttonTeam = findViewById(R.id.buttonTeam);
         ImageView buttonFriends = findViewById(R.id.buttonFriends);
+        ImageButton buttonSettings = findViewById(R.id.buttonSettings);
 
+        // Open Settings
+        buttonSettings.setOnClickListener(v -> {
+            Intent intent = new Intent(
+                    HomeActivity.this,
+                    SettingsActivity.class
+            );
+
+            startActivity(intent);
+        });
+
+
+        // Open Friends
         buttonFriends.setOnClickListener(v -> {
 
             Intent intent = new Intent(
