@@ -10,6 +10,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 
 public class SignUpActivity extends AppCompatActivity {
 
@@ -83,23 +85,60 @@ public class SignUpActivity extends AppCompatActivity {
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
 
+
                     if (task.isSuccessful()) {
 
-                        Toast.makeText(
-                                SignUpActivity.this,
-                                "Account created successfully!",
-                                Toast.LENGTH_SHORT
-                        ).show();
+                        FirebaseUser user = mAuth.getCurrentUser();
 
-                        Intent intent = new Intent(
-                                SignUpActivity.this,
-                                HomeActivity.class
-                        );
+                        if (user == null) {
+                            Toast.makeText(
+                                    SignUpActivity.this,
+                                    "Unable to load your new account.",
+                                    Toast.LENGTH_LONG
+                            ).show();
+                            return;
+                        }
 
-                        startActivity(intent);
-                        finish();
+                        // Send verification email
+                        user.sendEmailVerification()
+                                .addOnCompleteListener(emailTask -> {
+
+                                    if (emailTask.isSuccessful()) {
+
+                                        Toast.makeText(
+                                                SignUpActivity.this,
+                                                "Account created! Please verify your email.",
+                                                Toast.LENGTH_LONG
+                                        ).show();
+
+                                    } else {
+
+                                        Toast.makeText(
+                                                SignUpActivity.this,
+                                                "Account created, but verification email could not be sent. Please try resending.",
+                                                Toast.LENGTH_LONG
+                                        ).show();
+                                    }
+
+                                    // Open Email Verification screen
+                                    Intent intent = new Intent(
+                                            SignUpActivity.this,
+                                            VerifyEmailActivity.class
+                                    );
+
+                                    intent.putExtra("from_signup", true);
+
+                                    intent.setFlags(
+                                            Intent.FLAG_ACTIVITY_NEW_TASK |
+                                                    Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                    );
+
+                                    startActivity(intent);
+                                    finish();
+                                });
 
                     } else {
+
 
                         String errorMessage = "Account creation failed.";
 

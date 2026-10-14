@@ -118,6 +118,7 @@ public class AccountActivity extends AppCompatActivity {
                     dialog.dismiss();
                 });
 
+
         // Confirm Log Out
         View confirmButton =
                 dialog.findViewById(R.id.buttonConfirmLogout);
@@ -125,45 +126,76 @@ public class AccountActivity extends AppCompatActivity {
         confirmButton.setOnClickListener(v -> {
 
             confirmButton.setEnabled(false);
+            dialog.findViewById(R.id.buttonCancelLogout)
+                    .setEnabled(false);
+
             dialog.setCancelable(false);
 
             FirebaseAuth auth = FirebaseAuth.getInstance();
             FirebaseUser user = auth.getCurrentUser();
 
             if (user == null) {
-                auth.signOut();
-                dialog.dismiss();
-                openWelcome();
+                finishLogout(dialog, auth);
                 return;
             }
 
             FirebaseFirestore.getInstance()
                     .collection("users")
                     .document(user.getUid())
-                    .update(
-                            "isOnline", false,
-                            "lastSeen", FieldValue.serverTimestamp()
-                    )
-                    .addOnSuccessListener(unused -> {
+                    .get()
+                    .addOnSuccessListener(document -> {
 
-                        auth.signOut();
-                        dialog.dismiss();
-                        openWelcome();
+                        // No profile yet: log out normally
+                        if (!document.exists()) {
+                            finishLogout(dialog, auth);
+                            return;
+                        }
+
+                        // Profile exists: update Offline status
+                        document.getReference()
+                                .update(
+                                        "isOnline", false,
+                                        "lastSeen",
+                                        FieldValue.serverTimestamp()
+                                )
+                                .addOnSuccessListener(unused -> {
+                                    finishLogout(dialog, auth);
+                                })
+                                .addOnFailureListener(e -> {
+
+                                    Toast.makeText(
+                                            AccountActivity.this,
+                                            "Online status could not be updated.",
+                                            Toast.LENGTH_LONG
+                                    ).show();
+
+                                    finishLogout(dialog, auth);
+                                });
 
                     })
                     .addOnFailureListener(e -> {
 
-                        confirmButton.setEnabled(true);
-                        dialog.setCancelable(true);
-
                         Toast.makeText(
                                 AccountActivity.this,
-                                "Failed to log out. Please try again.",
+                                "Could not check profile status.",
                                 Toast.LENGTH_LONG
                         ).show();
+
+                        finishLogout(dialog, auth);
                     });
         });
+
     }
+
+    private void finishLogout(Dialog dialog, FirebaseAuth auth) {
+
+        auth.signOut();
+
+        dialog.dismiss();
+
+        openWelcome();
+    }
+
 
     private void openWelcome() {
 

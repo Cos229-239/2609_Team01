@@ -1,0 +1,139 @@
+
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#EEF1FA">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:id="@+id/buttonRegistrationEmailBack"
+                android:layout_width="36dp"
+                android:layout_height="48dp"
+                android:gravity="center"
+                android:text="←"
+                android:textSize="28sp"
+                android:textColor="#30364F"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="Back to Verify Email" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="Change Email"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="#30364F" />
+
+        </LinearLayout>
+
+        <!-- Description -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Entered the wrong email address? Update it below to receive a new verification link."
+            android:textSize="14sp"
+            android:textColor="#747887"
+            android:layout_marginBottom="26dp" />
+
+        <!-- Email Form -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:background="@drawable/bg_settings_card">
+
+            <!-- Current Email -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Current Email"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#30364F"
+                android:layout_marginBottom="10dp" />
+
+            <TextView
+                android:id="@+id/textCurrentRegistrationEmail"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:gravity="center_vertical"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:text="Loading current email..."
+                android:textSize="14sp"
+                android:textColor="#747887"
+                android:background="@drawable/bg_settings_icon"
+                android:layout_marginBottom="24dp" />
+
+            <!-- New Email -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="New Email"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#30364F"
+                android:layout_marginBottom="10dp" />
+
+            <EditText
+                android:id="@+id/editRegistrationNewEmail"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:hint="Enter your correct email"
+                android:inputType="textEmailAddress"
+                android:singleLine="true"
+                android:textSize="14sp"
+                android:textColor="#30364F"
+                android:textColorHint="#9398A5"
+                android:background="@drawable/bg_settings_icon"
+                android:layout_marginBottom="24dp" />
+
+            <!-- Send Verification -->
+            <Button
+                android:id="@+id/buttonUpdateRegistrationEmail"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Send Verification Email"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#6C4FB3" />
+
+        </LinearLayout>
+
+        <!-- Information -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:text="ⓘ  Your email address will be updated after you verify the new address."
+            android:textSize="12sp"
+            android:textColor="#747887" />
+
+    </LinearLayout>
+
+</ScrollView>
