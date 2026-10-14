@@ -38,6 +38,33 @@
             android:maxLength="40"
             android:layout_marginBottom="20dp" />
 
+        <!-- Team Logo, image -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Team Logo (Optional)"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp" />
+
+        <ImageView
+            android:id="@+id/imageTeamLogo"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="12dp"
+            android:src="@android:drawable/ic_menu_gallery"
+            android:scaleType="centerCrop"
+            android:contentDescription="Team logo preview" />
+
+        <Button
+            android:id="@+id/buttonChooseLogo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Choose Team Logo" />
+
         <!-- Game -->
         <TextView
             android:layout_width="wrap_content"
