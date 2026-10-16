@@ -177,6 +177,55 @@
 
             </LinearLayout>
 
+            <!-- ================================= -->
+            <!-- MY TEAMS SECTION -->
+            <!-- ================================= -->
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:layout_marginBottom="16dp"
+                android:text="My Teams"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#444652" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="#FFFFFF"
+                android:layout_marginBottom="28dp">
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:id="@+id/layoutMyTeams"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:minHeight="110dp">
+
+                        <TextView
+                            android:id="@+id/textNoTeams"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="You haven't created any teams yet."
+                            android:textColor="#666666"
+                            android:textSize="14sp" />
+
+                    </LinearLayout>
+
+                </HorizontalScrollView>
+
+            </LinearLayout>
+
         </LinearLayout>
 
     </ScrollView>

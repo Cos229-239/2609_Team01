@@ -27,6 +27,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.example.gamingteamfinder.createTeam.CreateTeamActivity;
 
+import android.graphics.Typeface;
+import com.bumptech.glide.Glide;
+import com.example.gamingteamfinder.teamDetails.TeamDetailsActivity;
+
+
 public class HomeActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
@@ -37,6 +42,9 @@ public class HomeActivity extends AppCompatActivity {
     private LinearLayout friendsContainer;
 
     private ListenerRegistration messageUnreadListener;
+
+    // Listener for My Teams
+    private ListenerRegistration teamsListener;
 
     private final List<ListenerRegistration> homeFriendStatusListeners =
             new ArrayList<>();
@@ -162,6 +170,7 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -169,7 +178,194 @@ public class HomeActivity extends AppCompatActivity {
         loadNotificationBadge();
         loadFriends();
         startMessageUnreadListener();
+        loadMyTeams();
     }
+
+    private void loadMyTeams() {
+
+        LinearLayout teamsContainer =
+                findViewById(R.id.layoutMyTeams);
+
+        String userId = FirebaseAuth.getInstance()
+                .getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (userId == null) {
+            teamsContainer.removeAllViews();
+            return;
+        }
+
+        if (teamsListener != null) {
+            teamsListener.remove();
+            teamsListener = null;
+        }
+
+        teamsListener = FirebaseFirestore.getInstance()
+                .collection("teams")
+                .whereEqualTo("ownerId", userId)
+                .addSnapshotListener((snapshot, error) -> {
+
+                    if (error != null) {
+                        android.util.Log.e(
+                                "HomeActivity",
+                                "Failed to load teams",
+                                error
+                        );
+
+                        Toast.makeText(
+                                HomeActivity.this,
+                                "Failed to load teams",
+                                Toast.LENGTH_SHORT
+                        ).show();
+
+                        return;
+                    }
+
+                    teamsContainer.removeAllViews();
+
+                    if (snapshot == null || snapshot.isEmpty()) {
+                        TextView emptyText = new TextView(this);
+                        emptyText.setText(
+                                "You haven't created any teams yet."
+                        );
+                        emptyText.setTextColor(Color.DKGRAY);
+                        emptyText.setTextSize(14);
+                        teamsContainer.addView(emptyText);
+                        return;
+                    }
+
+                    for (com.google.firebase.firestore.DocumentSnapshot doc
+                            : snapshot.getDocuments()) {
+
+                        String teamId = doc.getId();
+                        String teamName = doc.getString("teamName");
+                        String logoUrl = doc.getString("logoUrl");
+
+                        addTeamWidget(
+                                teamsContainer,
+                                teamId,
+                                teamName != null ? teamName : "Team",
+                                logoUrl
+                        );
+                    }
+                });
+    }
+
+
+    private void addTeamWidget(
+            LinearLayout container,
+            String teamId,
+            String teamName,
+            String logoUrl
+    ) {
+
+        // Each team gets its own vertical layout
+        LinearLayout teamItem = new LinearLayout(this);
+        teamItem.setOrientation(LinearLayout.VERTICAL);
+        teamItem.setGravity(Gravity.CENTER_HORIZONTAL);
+        teamItem.setClickable(true);
+        teamItem.setFocusable(true);
+
+        int width = dpToPx(96);
+
+        LinearLayout.LayoutParams itemParams =
+                new LinearLayout.LayoutParams(
+                        width,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                );
+
+        itemParams.setMargins(0, 0, dpToPx(12), 0);
+        teamItem.setLayoutParams(itemParams);
+
+        // Team logo
+        ImageView logo = new ImageView(this);
+
+        LinearLayout.LayoutParams imageParams =
+                new LinearLayout.LayoutParams(
+                        dpToPx(76),
+                        dpToPx(76)
+                );
+
+        logo.setLayoutParams(imageParams);
+        logo.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        logo.setContentDescription(teamName + " logo");
+
+        // Circular background
+        android.graphics.drawable.GradientDrawable circle =
+                new android.graphics.drawable.GradientDrawable();
+
+        circle.setShape(
+                android.graphics.drawable.GradientDrawable.OVAL
+        );
+
+        circle.setColor(Color.parseColor("#CED8F0"));
+
+        logo.setBackground(circle);
+        logo.setClipToOutline(true);
+
+        // Load uploaded logo, or use a placeholder
+        if (logoUrl != null && !logoUrl.isEmpty()) {
+            Glide.with(this)
+                    .load(logoUrl)
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .error(android.R.drawable.ic_menu_gallery)
+                    .into(logo);
+        } else {
+            logo.setImageResource(
+                    android.R.drawable.ic_menu_gallery
+            );
+        }
+
+        teamItem.addView(logo);
+
+        // Team name below logo
+        TextView nameText = new TextView(this);
+
+        nameText.setText(teamName);
+        nameText.setTextColor(Color.parseColor("#303443"));
+        nameText.setTextSize(13);
+        nameText.setTypeface(null, Typeface.NORMAL);
+        nameText.setGravity(Gravity.CENTER);
+        nameText.setMaxLines(2);
+        nameText.setEllipsize(
+                android.text.TextUtils.TruncateAt.END
+        );
+
+        LinearLayout.LayoutParams nameParams =
+                new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                );
+
+        nameParams.topMargin = dpToPx(8);
+        nameText.setLayoutParams(nameParams);
+
+        teamItem.addView(nameText);
+
+        // Open Team Details when clicked
+        teamItem.setOnClickListener(v -> {
+
+            Intent intent = new Intent(
+                    HomeActivity.this,
+                    TeamDetailsActivity.class
+            );
+
+            intent.putExtra("TEAM_ID", teamId);
+
+            startActivity(intent);
+        });
+
+        container.addView(teamItem);
+    }
+
+    private int dpToPx(int dp) {
+        return Math.round(
+                dp * getResources().getDisplayMetrics().density
+        );
+    }
+
+
 
     @Override
     protected void onPause() {
@@ -182,6 +378,10 @@ public class HomeActivity extends AppCompatActivity {
         }
 
         clearHomeFriendStatusListeners();
+        if (teamsListener != null) {
+            teamsListener.remove();
+            teamsListener = null;
+        }
     }
 
     private void loadNotificationBadge() {

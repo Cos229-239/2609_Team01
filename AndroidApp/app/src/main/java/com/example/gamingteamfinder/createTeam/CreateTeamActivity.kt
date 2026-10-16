@@ -23,6 +23,8 @@ import android.net.Uri
 import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
 import com.google.firebase.storage.FirebaseStorage
+import android.content.Intent
+import com.example.gamingteamfinder.teamDetails.TeamDetailsActivity
 
 class CreateTeamActivity : AppCompatActivity() {
 
@@ -453,6 +455,14 @@ class CreateTeamActivity : AppCompatActivity() {
                             Toast.LENGTH_LONG
                         ).show()
 
+                        val intent = Intent(
+                            this,
+                            TeamDetailsActivity::class.java
+                        )
+
+                        intent.putExtra("TEAM_ID", teamRef.id)
+
+                        startActivity(intent)
                         finish()
                     }
                     .addOnFailureListener { exception ->
