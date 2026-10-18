@@ -42,22 +42,8 @@
         android:gravity="center"
         android:layout_marginBottom="28dp" />
 
-    <!-- Cancel Button -->
-    <TextView
-        android:id="@+id/buttonCancelLogout"
-        android:layout_width="match_parent"
-        android:layout_height="46dp"
-        android:gravity="center"
-        android:text="Nah, Just Kidding"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:textColor="#FFFFFF"
-        android:background="@drawable/bg_logout_button"
-        android:clickable="true"
-        android:focusable="true"
-        android:layout_marginBottom="12dp" />
 
-    <!-- Confirm Log Out -->
+    <!-- Confirm Log Out - Primary Action -->
     <TextView
         android:id="@+id/buttonConfirmLogout"
         android:layout_width="match_parent"
@@ -66,9 +52,25 @@
         android:text="Yes, Log Me Out"
         android:textSize="14sp"
         android:textStyle="bold"
-        android:textColor="#6C4FB3"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/bg_logout_button"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_marginBottom="12dp" />
+
+    <!-- Cancel Button - Secondary Action -->
+    <TextView
+        android:id="@+id/buttonCancelLogout"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:gravity="center"
+        android:text="Nah, Just Kidding"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#5F5963"
         android:background="@drawable/bg_logout_button_outline"
         android:clickable="true"
         android:focusable="true" />
+
 
 </LinearLayout>

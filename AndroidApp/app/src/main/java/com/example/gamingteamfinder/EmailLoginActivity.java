@@ -5,6 +5,9 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import android.content.SharedPreferences;
+import android.widget.CheckBox;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -27,6 +30,10 @@ public class EmailLoginActivity extends AppCompatActivity {
 
     private EditText editEmail;
     private EditText editPassword;
+    private CheckBox checkRememberMe;
+    private SharedPreferences loginPreferences;
+    private TextView textRememberWarning;
+    private boolean rememberWarningShown = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +43,30 @@ public class EmailLoginActivity extends AppCompatActivity {
         // Connect Firebase Authentication
         mAuth = FirebaseAuth.getInstance();
 
+
+        // Remember Me
+        checkRememberMe = findViewById(R.id.checkRememberMe);
+
+
+        textRememberWarning = findViewById(R.id.textRememberWarning);
+
+        // Hide warning when Remember Me is checked
+        checkRememberMe.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> {
+
+                    if (isChecked) {
+                        textRememberWarning.setVisibility(View.GONE);
+                    }
+                }
+        );
+
+
+        loginPreferences = getSharedPreferences(
+                "gtf_login_preferences",
+                MODE_PRIVATE
+        );
+
+
         // Connect Java variables to XML
         editEmail = findViewById(R.id.editEmail);
         editPassword = findViewById(R.id.editPassword);
@@ -43,6 +74,25 @@ public class EmailLoginActivity extends AppCompatActivity {
         Button buttonLogin = findViewById(R.id.buttonLogin);
         Button buttonCreateAccount = findViewById(R.id.buttonCreateAccount);
         TextView buttonBackToWelcome = findViewById(R.id.buttonBackToWelcome);
+
+        TextView textForgotPassword =
+                findViewById(R.id.textForgotPassword);
+
+        textForgotPassword.setOnClickListener(v -> {
+
+            Intent intent = new Intent(
+                    EmailLoginActivity.this,
+                    ForgotPasswordActivity.class
+            );
+
+            // Pass entered email to Forgot Password
+            intent.putExtra(
+                    "prefill_email",
+                    editEmail.getText().toString().trim()
+            );
+
+            startActivity(intent);
+        });
 
         buttonBackToWelcome.setOnClickListener(v -> finish());
 
@@ -76,6 +126,16 @@ public class EmailLoginActivity extends AppCompatActivity {
             editPassword.setError("Enter your password");
             return;
         }
+
+
+
+        // Show Remember Me warning without blocking Firebase login
+        if (!checkRememberMe.isChecked()) {
+            textRememberWarning.setVisibility(View.VISIBLE);
+        } else {
+            textRememberWarning.setVisibility(View.GONE);
+        }
+
 
         // Firebase Login
         mAuth.signInWithEmailAndPassword(email, password)
@@ -115,7 +175,28 @@ public class EmailLoginActivity extends AppCompatActivity {
                             if (updatedUser != null
                                     && updatedUser.isEmailVerified()) {
 
+
+                                // Correct credentials, but Remember Me was not selected
+                                if (!checkRememberMe.isChecked() && !rememberWarningShown) {
+
+                                    rememberWarningShown = true;
+
+                                    // Stay on Login so the user can choose
+                                    // Remember Me or press LOGIN again
+                                    return;
+                                }
+
+                                textRememberWarning.setVisibility(View.GONE);
+
+
                                 // Verified email -> Home
+                                // Save Remember Me only after successful verified login
+                                boolean rememberMe = checkRememberMe.isChecked();
+
+                                loginPreferences.edit()
+                                        .putBoolean("remember_me", rememberMe)
+                                        .apply();
+
                                 Toast.makeText(
                                         EmailLoginActivity.this,
                                         "Login successful!",

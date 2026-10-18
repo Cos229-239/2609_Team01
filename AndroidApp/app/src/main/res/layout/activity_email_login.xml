@@ -93,34 +93,56 @@
             android:background="#EEFFFFFF"
             android:layout_marginBottom="12dp" />
 
+
+        <!-- Remember Me and Forgot Password -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
+            android:orientation="vertical"
             android:layout_marginBottom="24dp">
 
-            <CheckBox
-                android:id="@+id/checkRememberMe"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Remember me"
-                android:textColor="#496987" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
+                <CheckBox
+                    android:id="@+id/checkRememberMe"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Remember me"
+                    android:textColor="#496987" />
+
+                <TextView
+                    android:id="@+id/textForgotPassword"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="4dp"
+                    android:background="@drawable/clickable_text_background"
+                    android:text="Forgot Password?"
+                    android:textColor="#496987"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <!-- Remember Me Warning -->
             <TextView
-                android:id="@+id/textForgotPassword"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="4dp"
-                android:background="@drawable/clickable_text_background"
-                android:layout_width="wrap_content"
+                android:id="@+id/textRememberWarning"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Forgot Password?"
-                android:textColor="#496987"
-                android:textStyle="bold" />
+                android:layout_marginTop="8dp"
+                android:text="Without Remember Me, you'll need to sign in again the next time you open the app. Tap LOGIN again to continue."
+                android:textSize="12sp"
+                android:textColor="#8A5A17"
+                android:lineSpacingExtra="3dp"
+                android:visibility="gone" />
 
         </LinearLayout>
+
 
         <Button
             android:id="@+id/buttonLogin"
