@@ -55,6 +55,9 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage")
+    implementation("androidx.activity:activity-ktx:1.9.3")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 
     implementation(libs.activity.ktx)
     implementation(libs.appcompat)
