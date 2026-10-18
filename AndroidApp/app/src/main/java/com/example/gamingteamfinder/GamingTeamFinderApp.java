@@ -1,3 +1,4 @@
+
 package com.example.gamingteamfinder;
 
 import android.app.Activity;
@@ -30,11 +31,13 @@ public class GamingTeamFinderApp extends Application
         registerActivityLifecycleCallbacks(this);
     }
 
+    // Update Online / Offline status
     private void setOnlineStatus(boolean isOnline) {
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
-        if (currentUser == null) {
+        // Only update status for verified accounts
+        if (currentUser == null || !currentUser.isEmailVerified()) {
             return;
         }
 

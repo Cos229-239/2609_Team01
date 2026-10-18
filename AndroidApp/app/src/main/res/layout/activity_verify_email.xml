@@ -1,0 +1,176 @@
+
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#EEF1FA">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="28dp">
+
+            <TextView
+                android:id="@+id/buttonVerifyBack"
+                android:layout_width="36dp"
+                android:layout_height="48dp"
+                android:gravity="center"
+                android:text="←"
+                android:textSize="28sp"
+                android:textColor="#30364F"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="Back"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="Verify Your Email"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:textColor="#30364F" />
+
+        </LinearLayout>
+
+        <!-- Verification Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="24dp"
+            android:background="@drawable/bg_settings_card">
+
+            <!-- Email Icon -->
+            <ImageView
+                android:layout_width="84dp"
+                android:layout_height="84dp"
+                android:padding="22dp"
+                android:src="@drawable/ic_account_email"
+                android:background="@drawable/bg_settings_icon"
+                app:tint="#6C4FB3"
+                android:contentDescription="Email Verification"
+                android:layout_marginBottom="24dp" />
+
+            <!-- Title -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Check Your Inbox!"
+                android:textSize="21sp"
+                android:textStyle="bold"
+                android:textColor="#30364F"
+                android:gravity="center"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Description -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="We've sent a verification link to your email address."
+                android:textSize="14sp"
+                android:textColor="#747887"
+                android:gravity="center"
+                android:layout_marginBottom="20dp" />
+
+            <!-- User Email -->
+            <TextView
+                android:id="@+id/textVerificationEmail"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:gravity="center"
+                android:padding="8dp"
+                android:text="yourname@example.com"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#30364F"
+                android:background="@drawable/bg_settings_icon"
+                android:layout_marginBottom="20dp" />
+
+            <!-- Instructions -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Click the link in your email, then return here to continue."
+                android:textSize="13sp"
+                android:textColor="#747887"
+                android:gravity="center"
+                android:layout_marginBottom="28dp" />
+
+            <!-- Check Verification -->
+            <TextView
+                android:id="@+id/buttonCheckVerification"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:gravity="center"
+                android:text="I've Verified My Email"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/bg_logout_button"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Resend Verification -->
+            <TextView
+                android:id="@+id/buttonResendVerification"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:gravity="center"
+                android:text="Resend Verification Email"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#6C4FB3"
+                android:background="@drawable/bg_logout_button_outline"
+                android:clickable="true"
+                android:focusable="true" />
+
+        </LinearLayout>
+
+        <!-- Back to Log in -->
+        <TextView
+            android:id="@+id/buttonChangeVerificationEmail"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:layout_marginTop="20dp"
+            android:text="Change Email"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#6C4FB3"
+            android:clickable="true"
+            android:focusable="true" />
+
+
+        <!-- Cancel Sign Up -->
+        <TextView
+            android:id="@+id/buttonCancelSignUp"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:layout_marginTop="4dp"
+            android:text="Cancel Sign Up"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#C04F68"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</ScrollView>

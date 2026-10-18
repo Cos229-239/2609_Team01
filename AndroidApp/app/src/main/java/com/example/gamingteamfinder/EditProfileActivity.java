@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -153,7 +154,8 @@ public class EditProfileActivity extends AppCompatActivity {
 
         db.collection("users")
                 .document(currentUser.getUid())
-                .set(profile)
+                .set(profile, SetOptions.merge())
+
                 .addOnSuccessListener(unused -> {
 
                     Toast.makeText(
