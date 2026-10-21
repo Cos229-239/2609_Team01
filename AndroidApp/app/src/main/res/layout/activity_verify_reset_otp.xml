@@ -1,0 +1,151 @@
+
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/login_background"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center_vertical"
+        android:padding="28dp">
+
+        <ImageView
+            android:layout_width="88dp"
+            android:layout_height="88dp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="24dp"
+            android:padding="22dp"
+            android:background="@drawable/bg_settings_icon"
+            android:src="@drawable/ic_email_verified"
+            android:contentDescription="Verify OTP" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Verify Your Email"
+            android:textSize="27sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:gravity="center"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:id="@+id/textOtpDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Enter the 6-digit code sent to your email."
+            android:textSize="15sp"
+            android:textColor="#FFFFFF"
+            android:gravity="center"
+            android:layout_marginBottom="28dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="22dp"
+            android:background="@drawable/bg_settings_card">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Verification Code"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#30364F"
+                android:layout_marginBottom="10dp" />
+
+            <EditText
+                android:id="@+id/editResetOtp"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:hint="Enter 6-digit code"
+                android:inputType="number"
+                android:maxLength="6"
+                android:singleLine="true"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:letterSpacing="0.15"
+                android:textColor="#30364F"
+                android:background="@drawable/bg_settings_icon"
+                android:layout_marginBottom="18dp" />
+
+            <TextView
+                android:id="@+id/textOtpCountdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Time Remaining: 03:00"
+                android:textSize="14sp"
+                android:textColor="#B3261E"
+                android:gravity="center"
+                android:layout_marginBottom="12dp" />
+
+            <TextView
+                android:id="@+id/textOtpRequestsRemaining"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Checking request limit..."
+                android:textSize="12sp"
+                android:textColor="#747887"
+                android:gravity="center"
+                android:layout_marginBottom="20dp" />
+
+
+            <TextView
+                android:id="@+id/textResetTimeNotice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="18dp"
+                android:text="@string/otp_reset_time_notice"
+                android:textSize="13sp"
+                android:textColor="#5F5963"
+                android:gravity="center"
+                android:lineSpacingExtra="3dp" />
+
+
+            <Button
+                android:id="@+id/buttonVerifyResetOtp"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:text="Verify Code"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#376DA4" />
+
+            <TextView
+                android:id="@+id/textResendOtp"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="12dp"
+                android:text="Resend Code"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:textColor="#376DA4"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/textBackToResetEmail"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="20dp"
+            android:text="Back"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true" />
+
+    </LinearLayout>
+
+</ScrollView>

@@ -71,6 +71,35 @@ public class EmailLoginActivity extends AppCompatActivity {
         editEmail = findViewById(R.id.editEmail);
         editPassword = findViewById(R.id.editPassword);
 
+
+        // Get email from password reset screen
+        String emailFromReset = getIntent()
+                .getStringExtra("prefill_email");
+
+        if (emailFromReset != null
+                && !emailFromReset.isEmpty()) {
+            editEmail.setText(emailFromReset);
+        }
+
+        // Show success notification after password reset
+        if (getIntent().getBooleanExtra(
+                "password_reset_success",
+                false
+        )) {
+
+            Toast.makeText(
+                    EmailLoginActivity.this,
+                    "Password changed successfully!",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            // Prevent showing the notification again
+            getIntent().removeExtra(
+                    "password_reset_success"
+            );
+        }
+
+
         Button buttonLogin = findViewById(R.id.buttonLogin);
         Button buttonCreateAccount = findViewById(R.id.buttonCreateAccount);
         TextView buttonBackToWelcome = findViewById(R.id.buttonBackToWelcome);

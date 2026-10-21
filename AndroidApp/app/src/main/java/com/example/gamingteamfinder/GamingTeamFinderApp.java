@@ -6,9 +6,11 @@ import android.app.Application;
 import android.os.Bundle;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,15 +23,25 @@ public class GamingTeamFinderApp extends Application
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
 
+
     @Override
     public void onCreate() {
         super.onCreate();
 
+        // Initialize Firebase
+        FirebaseApp.initializeApp(this);
+
+        // Initialize Firebase App Check
+        AppCheckInitializer.install();
+
+        // Firebase Authentication and Firestore
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        // Keep Online / Offline tracking
         registerActivityLifecycleCallbacks(this);
     }
+
 
     // Update Online / Offline status
     private void setOnlineStatus(boolean isOnline) {

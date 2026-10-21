@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">GamingTeamFinder</string>
     <string name="web_client_id">968088021143-nmpa1ftsmktreorge1vvo0ph7smta1l3.apps.googleusercontent.com</string>
+
+    <string name="otp_reset_time_notice">After verifying your code, you will have <b>5 minutes</b> to create a new password.</string>
+
 </resources>

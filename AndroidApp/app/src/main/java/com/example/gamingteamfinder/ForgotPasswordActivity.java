@@ -1,14 +1,12 @@
 
 package com.example.gamingteamfinder;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.util.Patterns;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import android.view.View;
-import android.widget.LinearLayout;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,17 +14,10 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.google.firebase.FirebaseTooManyRequestsException;
-import com.google.firebase.auth.FirebaseAuth;
-
 public class ForgotPasswordActivity extends AppCompatActivity {
 
-    private FirebaseAuth mAuth;
-
     private EditText editResetEmail;
-    private Button buttonSendResetEmail;
-    private LinearLayout layoutResetStatus;
-
+    private Button buttonSendOtp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,13 +44,9 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                 }
         );
 
-        mAuth = FirebaseAuth.getInstance();
-
-        // Connect XML
+        // Connect XML components
         editResetEmail = findViewById(R.id.editResetEmail);
-
-        buttonSendResetEmail =
-                findViewById(R.id.buttonSendResetEmail);
+        buttonSendOtp = findViewById(R.id.buttonSendOtp);
 
         // Prefill email from Login screen
         String emailFromLogin = getIntent()
@@ -71,24 +58,24 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             editResetEmail.setText(emailFromLogin);
         }
 
-
+        // Back to Login
         findViewById(R.id.textReturnToLogin)
                 .setOnClickListener(v -> finish());
 
-        // Send reset link
-        buttonSendResetEmail.setOnClickListener(v ->
-                sendPasswordReset()
+        // Send OTP
+        buttonSendOtp.setOnClickListener(v ->
+                sendOtp()
         );
-        layoutResetStatus = findViewById(R.id.layoutResetStatus);
-
     }
 
-    private void sendPasswordReset() {
+    // Request OTP from Vercel backend
+    private void sendOtp() {
 
         String email = editResetEmail.getText()
-                .toString().trim();
+                .toString()
+                .trim();
 
-        // Empty email
+        // Check empty email
         if (email.isEmpty()) {
             editResetEmail.setError(
                     "Enter your email address"
@@ -96,7 +83,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             return;
         }
 
-        // Invalid email
+        // Check email format
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             editResetEmail.setError(
                     "Enter a valid email address"
@@ -105,56 +92,58 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         }
 
         // Prevent repeated clicks
-        buttonSendResetEmail.setEnabled(false);
-        buttonSendResetEmail.setText("Sending...");
-        layoutResetStatus.setVisibility(View.GONE);
+        buttonSendOtp.setEnabled(false);
+        buttonSendOtp.setText("Sending OTP...");
 
+        // Request OTP using Firebase App Check
+        OtpApiClient.requestOtp(
+                email,
+                (accepted, message) -> {
 
-
-
-        // Send password reset link
-        mAuth.sendPasswordResetEmail(email)
-                .addOnCompleteListener(task -> {
-
-
-                    buttonSendResetEmail.setEnabled(true);
-                    buttonSendResetEmail.setText("Send Reset Link");
-
-                    if (task.isSuccessful()) {
-
-                        // Show success message inside Forgot Password screen
-                        layoutResetStatus.setVisibility(View.VISIBLE);
-
-                    } else {
-
-                        Log.e(
-                                "PASSWORD_RESET",
-                                "Unable to send password reset request",
-                                task.getException()
-                        );
-
-                        if (task.getException() instanceof
-                                FirebaseTooManyRequestsException) {
-
-                            Toast.makeText(
-                                    ForgotPasswordActivity.this,
-                                    "Too many requests. Please try again later.",
-                                    Toast.LENGTH_LONG
-                            ).show();
-
-                        } else {
-
-                            Toast.makeText(
-                                    ForgotPasswordActivity.this,
-                                    "Unable to process the reset request. "
-                                            + "Please try again later.",
-                                    Toast.LENGTH_LONG
-                            ).show();
-                        }
+                    if (isFinishing() || isDestroyed()) {
+                        return;
                     }
 
+                    // Restore button
+                    buttonSendOtp.setEnabled(true);
+                    buttonSendOtp.setText("Send OTP");
 
-                });
 
+
+                    if (accepted) {
+
+                        Toast.makeText(
+                                ForgotPasswordActivity.this,
+                                "Check your email for the verification code.",
+                                Toast.LENGTH_SHORT
+                        ).show();
+
+
+                        // Move to Verify OTP screen
+                        Intent intent = new Intent(
+                                ForgotPasswordActivity.this,
+                                VerifyResetOtpActivity.class
+                        );
+
+                        // Pass email to OTP verification
+                        intent.putExtra(
+                                "reset_email",
+                                email
+                        );
+
+                        startActivity(intent);
+
+
+                    }
+                    else {
+                        Toast.makeText(
+                                ForgotPasswordActivity.this,
+                                message,
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+
+                }
+        );
     }
 }

@@ -56,6 +56,17 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")
+
+
+    // Firebase App Check
+    implementation("com.google.firebase:firebase-appcheck")
+
+    // Android Studio Emulator and debug builds
+    debugImplementation("com.google.firebase:firebase-appcheck-debug")
+
+    // Production Android builds
+    releaseImplementation("com.google.firebase:firebase-appcheck-playintegrity")
+
     implementation("androidx.activity:activity-ktx:1.9.3")
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
