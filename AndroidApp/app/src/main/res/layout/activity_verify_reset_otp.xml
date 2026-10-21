@@ -80,21 +80,32 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Time Remaining: 03:00"
+                android:textStyle="bold"
                 android:textSize="14sp"
                 android:textColor="#B3261E"
                 android:gravity="center"
                 android:layout_marginBottom="12dp" />
 
+
             <TextView
                 android:id="@+id/textOtpRequestsRemaining"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Checking request limit..."
+                android:text="OTP Requests Remaining: --/10"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#30364F"
+                android:gravity="center"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Maximum 10 requests per 24 hours"
                 android:textSize="12sp"
                 android:textColor="#747887"
                 android:gravity="center"
                 android:layout_marginBottom="20dp" />
-
 
             <TextView
                 android:id="@+id/textResetTimeNotice"
@@ -102,6 +113,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="18dp"
                 android:text="@string/otp_reset_time_notice"
+                android:fontFamily="sans-serif-medium"
                 android:textSize="13sp"
                 android:textColor="#5F5963"
                 android:gravity="center"

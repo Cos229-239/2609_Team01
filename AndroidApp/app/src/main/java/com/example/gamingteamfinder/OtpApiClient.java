@@ -33,9 +33,13 @@ public final class OtpApiClient {
             new Handler(Looper.getMainLooper());
 
     public interface Callback {
-        void onResult(boolean accepted, String message);
+        void onResult(
+                boolean accepted,
+                String message,
+                int statusCode,
+                long retryAfterSeconds
+        );
     }
-
     private OtpApiClient() {
     }
 
@@ -58,6 +62,8 @@ public final class OtpApiClient {
 
                         boolean accepted = false;
                         String message;
+                        int statusCode = 0;
+                        long retryAfterSeconds = 0L;
 
                         try {
 
@@ -96,10 +102,10 @@ public final class OtpApiClient {
                                 output.write(requestBody);
                             }
 
-                            int responseCode =
-                                    connection.getResponseCode();
+                            statusCode = connection.getResponseCode();
 
-                            if (responseCode == 202) {
+
+                            if (statusCode == 202) {
 
                                 accepted = true;
 
@@ -108,13 +114,31 @@ public final class OtpApiClient {
                                                 "a verification code will be sent " +
                                                 "if permitted.";
 
-                            } else if (responseCode == 401) {
+                            } else if (statusCode == 401) {
 
                                 message =
                                         "App verification failed. " +
                                                 "Please try again.";
 
-                            } else if (responseCode == 429) {
+                            } else if (statusCode == 429) {
+
+                                // Read retry time from Vercel
+                                String retryHeader =
+                                        connection.getHeaderField("Retry-After");
+
+                                if (retryHeader != null) {
+                                    try {
+                                        retryAfterSeconds = Math.max(
+                                                0L,
+                                                Math.min(
+                                                        86400L,
+                                                        Long.parseLong(retryHeader.trim())
+                                                )
+                                        );
+                                    } catch (NumberFormatException ignored) {
+                                        retryAfterSeconds = 0L;
+                                    }
+                                }
 
                                 message =
                                         "Too many requests. " +
@@ -126,6 +150,7 @@ public final class OtpApiClient {
                                         "OTP service unavailable. " +
                                                 "Please try again later.";
                             }
+
 
                         } catch (Exception e) {
 
@@ -142,14 +167,20 @@ public final class OtpApiClient {
 
                         boolean finalAccepted = accepted;
                         String finalMessage = message;
+                        int finalStatusCode = statusCode;
+                        long finalRetryAfterSeconds = retryAfterSeconds;
 
                         // Return result to Android UI thread
+
                         mainHandler.post(() ->
                                 callback.onResult(
                                         finalAccepted,
-                                        finalMessage
+                                        finalMessage,
+                                        finalStatusCode,
+                                        finalRetryAfterSeconds
                                 )
                         );
+
                     });
 
                 })
@@ -158,8 +189,9 @@ public final class OtpApiClient {
                     mainHandler.post(() ->
                             callback.onResult(
                                     false,
-                                    "Unable to verify the app. " +
-                                            "Please try again."
+                                    "Unable to verify the app. Please try again.",
+                                    0,
+                                    0L
                             )
                     );
                 });

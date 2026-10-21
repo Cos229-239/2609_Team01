@@ -8,6 +8,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.os.Handler;
+import android.os.Looper;
 
 import android.os.CountDownTimer;
 
@@ -28,6 +30,20 @@ public class VerifyResetOtpActivity extends AppCompatActivity {
     private boolean verifying = false;
 
     private static final long OTP_DURATION_MS = 3 * 60 * 1000L;
+    private static final long RESEND_COOLDOWN_MS = 60 * 1000L;
+
+    private long resendDeadline;
+    private CountDownTimer resendTimer;
+    private boolean sendingOtp = false;
+    private final Handler rateLimitHandler =
+            new Handler(Looper.getMainLooper());
+
+    private final Runnable rateLimitRefresh = () -> {
+        if (resetEmail != null) {
+            updateRequestCount();
+            updateResendCountdown();
+        }
+    };
 
     private long otpDeadline;
     private CountDownTimer otpTimer;
@@ -95,13 +111,27 @@ public class VerifyResetOtpActivity extends AppCompatActivity {
         startOtpCountdown();
 
 
-        textOtpRequestsRemaining.setText(
-                "Request information is not available yet"
-        );
+        updateRequestCount();
 
-        // Resend will be implemented later
-        textResendOtp.setEnabled(false);
-        textResendOtp.setAlpha(0.5f);
+        // Start the initial 60-second resend cooldown
+        if (savedInstanceState != null) {
+            resendDeadline = savedInstanceState.getLong(
+                    "resend_deadline",
+                    0L
+            );
+        }
+
+        if (resendDeadline <= 0L) {
+            resendDeadline = SystemClock.elapsedRealtime()
+                    + RESEND_COOLDOWN_MS;
+        }
+
+        startResendCountdown();
+
+        // Resend a new OTP
+        textResendOtp.setOnClickListener(v ->
+                resendOtp()
+        );
 
         // Verify OTP
         buttonVerifyResetOtp.setOnClickListener(v ->
@@ -117,11 +147,6 @@ public class VerifyResetOtpActivity extends AppCompatActivity {
     private void verifyOtpCode() {
 
         if (verifying) {
-            return;
-        }
-
-        if (SystemClock.elapsedRealtime() >= otpDeadline) {
-            showOtpExpired();
             return;
         }
 
@@ -163,9 +188,8 @@ public class VerifyResetOtpActivity extends AppCompatActivity {
 
                     verifying = false;
 
-                    buttonVerifyResetOtp.setEnabled(
-                            SystemClock.elapsedRealtime() < otpDeadline
-                    );
+                    buttonVerifyResetOtp.setEnabled(true);
+
                     buttonVerifyResetOtp.setText("Verify Code");
 
                     if (verified
@@ -276,18 +300,24 @@ public class VerifyResetOtpActivity extends AppCompatActivity {
         );
     }
 
+
     private void showOtpExpired() {
 
         textOtpCountdown.setText(
-                "Code expired. Please request a new OTP."
+                "Estimated code time ended. Check your email for a newer code."
         );
 
-        buttonVerifyResetOtp.setEnabled(false);
+        // Backend verifies the actual OTP expiration.
+        // Do not block a potentially valid newer OTP.
+        if (!verifying) {
+            buttonVerifyResetOtp.setEnabled(true);
+        }
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putLong("otp_deadline", otpDeadline);
+        outState.putLong("resend_deadline", resendDeadline);
         super.onSaveInstanceState(outState);
     }
 
@@ -297,7 +327,286 @@ public class VerifyResetOtpActivity extends AppCompatActivity {
             otpTimer.cancel();
         }
 
+        if (resendTimer != null) {
+            resendTimer.cancel();
+        }
+
         super.onDestroy();
+        rateLimitHandler.removeCallbacks(rateLimitRefresh);
     }
+
+
+    private void startResendCountdown() {
+
+        if (resendTimer != null) {
+            resendTimer.cancel();
+        }
+
+        long remaining = resendDeadline
+                - SystemClock.elapsedRealtime();
+
+        if (remaining <= 0) {
+            updateResendCountdown();
+            return;
+        }
+
+        resendTimer = new CountDownTimer(remaining, 1000) {
+
+            @Override
+            public void onTick(long millisUntilFinished) {
+                updateResendCountdown();
+            }
+
+            @Override
+            public void onFinish() {
+                updateResendCountdown();
+            }
+        };
+
+        resendTimer.start();
+        updateResendCountdown();
+    }
+
+    private void updateResendCountdown() {
+
+
+        rateLimitHandler.removeCallbacks(rateLimitRefresh);
+
+        // Check backend rate-limit status
+        long blockedMs = OtpRateLimitStore.getRemainingMs(this);
+
+        if (blockedMs > 0L) {
+
+            textResendOtp.setText("Too Many Requests");
+            textResendOtp.setEnabled(false);
+            textResendOtp.setAlpha(0.5f);
+
+            // Refresh automatically when the block expires
+            rateLimitHandler.postDelayed(
+                    rateLimitRefresh,
+                    blockedMs
+            );
+
+            return;
+        }
+
+
+        if (OtpRequestHistory.getRemaining(this, resetEmail) <= 0) {
+
+            textResendOtp.setText("OTP Limit Reached");
+            textResendOtp.setEnabled(false);
+            textResendOtp.setAlpha(0.5f);
+
+            // Time until the oldest locally recorded request expires
+            long waitMs = OtpRequestHistory.getTimeUntilNextRequestMs(
+                    this,
+                    resetEmail
+            );
+
+            if (waitMs > 0L) {
+                rateLimitHandler.postDelayed(
+                        rateLimitRefresh,
+                        waitMs + 1000L
+                );
+            }
+
+            return;
+        }
+
+
+
+        long remaining = Math.max(
+                0L,
+                resendDeadline - SystemClock.elapsedRealtime()
+        );
+
+        if (remaining > 0) {
+
+            long seconds = (remaining + 999L) / 1000L;
+
+            textResendOtp.setText(
+                    "Resend Code (" + seconds + "s)"
+            );
+
+            textResendOtp.setEnabled(false);
+            textResendOtp.setAlpha(0.5f);
+
+        } else {
+
+            textResendOtp.setText(
+                    sendingOtp ? "Sending..." : "Resend Code"
+            );
+
+            textResendOtp.setEnabled(
+                    !sendingOtp && !verifying
+            );
+
+            textResendOtp.setAlpha(
+                    sendingOtp || verifying ? 0.5f : 1.0f
+            );
+        }
+    }
+
+
+    private void resendOtp() {
+
+
+
+        // Prevent repeated requests
+        if (sendingOtp || verifying) {
+            return;
+        }
+
+        // Do not resend during a backend rate limit
+        if (OtpRateLimitStore.getRemainingMs(this) > 0L) {
+            updateResendCountdown();
+            return;
+        }
+
+        // Check 60-second cooldown
+        if (SystemClock.elapsedRealtime() < resendDeadline) {
+            return;
+        }
+
+        // Prevent resend when local request limit is reached
+        if (OtpRequestHistory.getRemaining(this, resetEmail) <= 0) {
+
+            updateResendCountdown();
+
+            Toast.makeText(
+                    this,
+                    "OTP request limit reached. Please try again later.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
+        sendingOtp = true;
+
+        textResendOtp.setEnabled(false);
+        textResendOtp.setAlpha(0.5f);
+        textResendOtp.setText("Sending...");
+
+        // Request another OTP from Vercel
+        OtpApiClient.requestOtp(
+                resetEmail,
+                (accepted, message, statusCode, retryAfterSeconds) -> {
+
+                    if (isFinishing() || isDestroyed()) {
+                        return;
+                    }
+
+                    sendingOtp = false;
+
+                    if (statusCode == 429) {
+
+                        // Save backend rate-limit information
+                        OtpRateLimitStore.saveRateLimit(
+                                VerifyResetOtpActivity.this,
+                                retryAfterSeconds
+                        );
+
+                        // Disable Resend Code
+                        updateResendCountdown();
+
+                        Toast.makeText(
+                                VerifyResetOtpActivity.this,
+                                "Too many OTP requests. Please try again later.",
+                                Toast.LENGTH_LONG
+                        ).show();
+
+                        return;
+                    }
+
+
+
+                    if (accepted) {
+
+                        // Record the resend request
+                        OtpRequestHistory.recordAcceptedRequest(
+                                VerifyResetOtpActivity.this,
+                                resetEmail
+                        );
+
+                        // Refresh the displayed remaining count
+                        updateRequestCount();
+
+                        // Start another 60-second cooldown
+                        resendDeadline =
+                                SystemClock.elapsedRealtime()
+                                        + RESEND_COOLDOWN_MS;
+
+                        // Restart the estimated 3-minute OTP timer
+                        otpDeadline =
+                                SystemClock.elapsedRealtime()
+                                        + OTP_DURATION_MS;
+
+
+                        // Stop old OTP countdown
+                        if (otpTimer != null) {
+                            otpTimer.cancel();
+                        }
+
+                        // Start new countdowns
+                        startOtpCountdown();
+                        startResendCountdown();
+
+                        buttonVerifyResetOtp.setEnabled(true);
+
+                        Toast.makeText(
+                                VerifyResetOtpActivity.this,
+                                "Request received. Check your email for a new code.",
+                                Toast.LENGTH_LONG
+                        ).show();
+
+                    } else {
+
+                        // Allow retry if request fails
+                        updateResendCountdown();
+
+                        Toast.makeText(
+                                VerifyResetOtpActivity.this,
+                                message,
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                }
+        );
+    }
+
+
+    private void updateRequestCount() {
+
+        int remaining = OtpRequestHistory.getRemaining(
+                this,
+                resetEmail
+        );
+
+        textOtpRequestsRemaining.setText(
+                "OTP Requests Remaining: "
+                        + remaining
+                        + "/10 (device estimate)"
+        );
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (textResendOtp != null && resetEmail != null) {
+            updateRequestCount();
+            updateResendCountdown();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        rateLimitHandler.removeCallbacks(rateLimitRefresh);
+        super.onPause();
+    }
+
+
+
 
 }
