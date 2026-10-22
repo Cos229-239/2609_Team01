@@ -16,6 +16,9 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.bumptech.glide.Glide
 import com.example.gamingteamfinder.utils.TeamLogoHelper
 import com.example.gamingteamfinder.utils.TeamScheduleFormatter
+import android.content.Intent
+import android.view.View
+import com.example.gamingteamfinder.createTeam.EditTeamActivity
 
 
 class TeamDetailsActivity : AppCompatActivity() {
@@ -28,7 +31,7 @@ class TeamDetailsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_team_details)
 
-        findViewById<TextView>(R.id.textBack).setOnClickListener {
+        findViewById<Button>(R.id.buttonBack).setOnClickListener {
             finish()
         }
 
@@ -120,14 +123,34 @@ class TeamDetailsActivity : AppCompatActivity() {
                         }
                 }
 
-                // The owner is already a member
+                // Show Edit Team only to the team owner
                 val currentUid = FirebaseAuth.getInstance().currentUser?.uid
-                val joinButton = findViewById<Button>(R.id.buttonRequestJoin)
 
-                if (currentUid == ownerId) {
-                    joinButton.visibility = android.view.View.GONE
+                val joinButton = findViewById<Button>(R.id.buttonRequestJoin)
+                val editButton = findViewById<Button>(R.id.buttonEditTeam)
+
+                if (currentUid != null && currentUid == ownerId) {
+
+                    // Owner can edit, but doesn't need to request to join
+                    editButton.visibility = View.VISIBLE
+                    joinButton.visibility = View.GONE
+
+                    editButton.setOnClickListener {
+                        val intent = Intent(
+                            this,
+                            EditTeamActivity::class.java
+                        )
+
+                        intent.putExtra("TEAM_ID", teamId)
+                        startActivity(intent)
+                    }
+
                 } else {
-                    joinButton.visibility = android.view.View.VISIBLE
+
+                    // Other players cannot edit
+                    editButton.visibility = View.GONE
+
+                    joinButton.visibility = View.VISIBLE
                     joinButton.isEnabled = false
                     joinButton.text = "Join Requests Coming Soon"
                 }

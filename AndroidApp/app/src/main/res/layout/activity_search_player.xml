@@ -93,6 +93,7 @@
 
         <!-- PLAYER LIST -->
         <ScrollView
+            android:id="@+id/playersScroll"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
@@ -105,6 +106,22 @@
                 android:orientation="vertical">
             </LinearLayout>
 
+        </ScrollView>
+
+        <!-- TEAMS LIST (shown when Teams tab is selected) -->
+        <ScrollView
+            android:id="@+id/teamsScroll"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fillViewport="true"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/teamsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
         </ScrollView>
 
     </LinearLayout>

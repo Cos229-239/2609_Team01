@@ -113,6 +113,9 @@
         <activity
             android:name=".teamDetails.TeamDetailsActivity"
             android:exported="false" />
+        <activity
+            android:name=".createTeam.EditTeamActivity"
+            android:exported="false" />
 
 
     </application>

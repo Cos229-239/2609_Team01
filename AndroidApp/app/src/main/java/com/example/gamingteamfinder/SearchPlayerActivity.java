@@ -8,6 +8,12 @@ import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.view.View;
+import com.example.gamingteamfinder.teamDetails.TeamDetailsActivity;
+import com.example.gamingteamfinder.utils.TeamLogoHelper;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -32,6 +38,12 @@ public class SearchPlayerActivity extends AppCompatActivity {
 
     private LinearLayout playersContainer;
     private boolean isLoadingPlayers = false;
+    private boolean showingTeams = false;
+    private LinearLayout teamsContainer;
+    private View playersScroll;
+    private View teamsScroll;
+    private TextView tabPlayersView;
+    private TextView tabTeamsView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +61,11 @@ public class SearchPlayerActivity extends AppCompatActivity {
         Button buttonFilter = findViewById(R.id.buttonFilter);
 
         playersContainer = findViewById(R.id.playersContainer);
+        teamsContainer = findViewById(R.id.teamsContainer);
+        playersScroll = findViewById(R.id.playersScroll);
+        teamsScroll = findViewById(R.id.teamsScroll);
+        tabPlayersView = tabPlayers;
+        tabTeamsView = tabTeams;
 
         // Bottom navigation
         ImageButton buttonNavHome = findViewById(R.id.buttonNavHome);
@@ -73,19 +90,10 @@ public class SearchPlayerActivity extends AppCompatActivity {
             finish();
         });
 
-        // Players tab
-        tabPlayers.setOnClickListener(v -> {
-            // Already on Players tab
-        });
-
-        // Teams tab
-        tabTeams.setOnClickListener(v -> {
-            Toast.makeText(
-                    SearchPlayerActivity.this,
-                    "Teams coming soon",
-                    Toast.LENGTH_SHORT
-            ).show();
-        });
+        // Switch tabs and swap their selected colors
+        tabPlayers.setOnClickListener(v -> showTab(false));
+        tabTeams.setOnClickListener(v -> showTab(true));
+        showTab(false);
 
         // Filter
         buttonFilter.setOnClickListener(v -> {
@@ -135,9 +143,231 @@ public class SearchPlayerActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        if (playersContainer != null) {
+        if (showingTeams) {
+            loadTeams();
+        } else if (playersContainer != null) {
             loadPlayers();
         }
+    }
+
+    private void showTab(boolean teams) {
+        showingTeams = teams;
+        int selected = Color.parseColor("#6C4FB3");
+        int inactive = Color.parseColor("#D5D5D5");
+        tabPlayersView.setBackgroundColor(teams ? inactive : selected);
+        tabTeamsView.setBackgroundColor(teams ? selected : inactive);
+        tabPlayersView.setTextColor(teams ? Color.parseColor("#333333") : Color.WHITE);
+        tabTeamsView.setTextColor(teams ? Color.WHITE : Color.parseColor("#333333"));
+        playersScroll.setVisibility(teams ? View.GONE : View.VISIBLE);
+        teamsScroll.setVisibility(teams ? View.VISIBLE : View.GONE);
+        if (teams) loadTeams();
+        else if (playersContainer.getChildCount() == 0) loadPlayers();
+    }
+
+    private void loadTeams() {
+        teamsContainer.removeAllViews();
+        TextView loading = new TextView(this);
+        loading.setText("Loading teams...");
+        teamsContainer.addView(loading);
+
+        db.collection("teams").get()
+                .addOnSuccessListener(snapshot -> {
+                    if (!showingTeams) return;
+                    teamsContainer.removeAllViews();
+                    int count = 0;
+                    for (DocumentSnapshot team : snapshot.getDocuments()) {
+                        String status = team.getString("status");
+                        if (status != null && !status.equals("open")) continue;
+                        addTeamCard(team);
+                        count++;
+                    }
+                    if (count == 0) showTeamMessage("No teams found.");
+                })
+                .addOnFailureListener(e -> {
+                    if (showingTeams) {
+                        teamsContainer.removeAllViews();
+                        showTeamMessage("Failed to load teams: " + e.getMessage());
+                    }
+                });
+    }
+
+    private void showTeamMessage(String message) {
+        TextView text = new TextView(this);
+        text.setText(message);
+        text.setTextSize(16);
+        text.setPadding(0, dp(24), 0, 0);
+        teamsContainer.addView(text);
+    }
+
+    private void addTeamCard(DocumentSnapshot team) {
+        String teamId = team.getId();
+        String name = team.getString("teamName");
+        String game = team.getString("game");
+        String mode = team.getString("gameMode");
+        String minRank = team.getString("minRank");
+        String maxRank = team.getString("maxRank");
+        String ownerId = team.getString("ownerId");
+        String start = team.getString("startTime");
+        String end = team.getString("endTime");
+        List<?> days = (List<?>) team.get("days");
+        Long members = team.getLong("currentPlayers");
+        Long maxMembers = team.getLong("maxPlayers");
+
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.HORIZONTAL);
+        card.setGravity(Gravity.CENTER_VERTICAL);
+        card.setPadding(dp(10), dp(12), dp(10), dp(12));
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(Color.parseColor("#D9D9D9"));
+        background.setCornerRadius(dp(8));
+        card.setBackground(background);
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(-1, -2);
+        cardParams.bottomMargin = dp(16);
+        card.setLayoutParams(cardParams);
+
+        LinearLayout images = new LinearLayout(this);
+        images.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams imagesParams = new LinearLayout.LayoutParams(dp(60), -2);
+        imagesParams.rightMargin = dp(10);
+        images.setLayoutParams(imagesParams);
+
+        ImageView teamLogo = new ImageView(this);
+        teamLogo.setLayoutParams(new LinearLayout.LayoutParams(dp(56), dp(56)));
+        teamLogo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        teamLogo.setImageResource(TeamLogoHelper.getDrawableId(this, team.getString("logoId")));
+        teamLogo.setContentDescription("Team logo");
+        images.addView(teamLogo);
+
+        ImageView gameLogo = new ImageView(this);
+        LinearLayout.LayoutParams gameLogoParams = new LinearLayout.LayoutParams(dp(56), dp(56));
+        gameLogoParams.topMargin = dp(6);
+        gameLogo.setLayoutParams(gameLogoParams);
+        gameLogo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        int gameDrawable = getGameLogo(game);
+        if (gameDrawable != 0) {
+            gameLogo.setImageResource(gameDrawable);
+        } else {
+            // Fallback when game logo drawables have not been added yet
+            gameLogo.setImageResource(android.R.drawable.ic_menu_gallery);
+        }
+        gameLogo.setContentDescription(game == null ? "Game logo" : game + " logo");
+        images.addView(gameLogo);
+        card.addView(images);
+
+        LinearLayout details = new LinearLayout(this);
+        details.setOrientation(LinearLayout.VERTICAL);
+        details.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1f));
+        addTeamText(details, name == null ? "Unnamed Team" : name, true);
+        addTeamText(details, (mode == null ? "Game mode not set" : mode)
+                + " - " + (minRank == null ? "?" : minRank)
+                + " to " + (maxRank == null ? "?" : maxRank), false);
+        addTeamText(details, "Mic - " + (Boolean.TRUE.equals(team.getBoolean("voiceChat")) ? "Yes" : "No"), false);
+        String dayText = (days == null || days.isEmpty()) ? "Days not set" : android.text.TextUtils.join(", ", days);
+        addTeamText(details, dayText + " · " + (start == null ? "?" : start)
+                + " - " + (end == null ? "?" : end), false);
+        addTeamText(details, (members == null ? 0 : members) + "/"
+                + (maxMembers == null ? 5 : maxMembers) + " Players", false);
+        card.addView(details);
+
+        LinearLayout actions = new LinearLayout(this);
+        actions.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams actionsParams = new LinearLayout.LayoutParams(dp(74), -2);
+        actionsParams.leftMargin = dp(6);
+        actions.setLayoutParams(actionsParams);
+
+        Button join = new Button(this);
+        join.setText("Join");
+        join.setAllCaps(false);
+        join.setTextSize(12);
+        join.setPadding(0, 0, 0, 0);
+        join.setTextColor(Color.WHITE);
+        join.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#6C4FB3")));
+        actions.addView(join);
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null && user.getUid().equals(ownerId)) {
+            join.setText("Owner");
+            join.setEnabled(false);
+        } else if (members != null && maxMembers != null && members >= maxMembers) {
+            join.setText("Full");
+            join.setEnabled(false);
+        } else if (user != null) {
+            // Each user can have one request document per team.
+            db.collection("teams").document(teamId).collection("joinRequests")
+                    .document(user.getUid()).get().addOnSuccessListener(request -> {
+                        if (request.exists() && "pending".equals(request.getString("status"))) {
+                            join.setText("Pending");
+                            join.setEnabled(false);
+                        }
+                    });
+        }
+        join.setOnClickListener(v -> sendJoinRequest(teamId, ownerId, join));
+
+        Button view = new Button(this);
+        view.setText("View");
+        view.setAllCaps(false);
+        view.setTextSize(12);
+        view.setPadding(0, 0, 0, 0);
+        view.setTextColor(Color.WHITE);
+        view.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#6C4FB3")));
+        view.setOnClickListener(v -> {
+            Intent intent = new Intent(this, TeamDetailsActivity.class);
+            intent.putExtra("TEAM_ID", teamId);
+            startActivity(intent);
+        });
+        actions.addView(view);
+        card.addView(actions);
+        teamsContainer.addView(card);
+    }
+
+    private void addTeamText(LinearLayout parent, String value, boolean heading) {
+        TextView text = new TextView(this);
+        text.setText(value);
+        text.setTextColor(Color.parseColor("#222222"));
+        text.setTextSize(heading ? 16 : 13);
+        if (heading) text.setTypeface(null, Typeface.BOLD);
+        parent.addView(text);
+    }
+
+    private int getGameLogo(String game) {
+        if (game == null) return 0;
+        // Put game_logo_lol.png and game_logo_valorant.png in res/drawable.
+        String name = game.equalsIgnoreCase("League of Legends")
+                ? "game_logo_lol" : game.equalsIgnoreCase("Valorant")
+                                    ? "game_logo_valorant" : "";
+        return name.isEmpty() ? 0 : getResources().getIdentifier(name, "drawable", getPackageName());
+    }
+
+    private void sendJoinRequest(String teamId, String ownerId, Button join) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            Toast.makeText(this, "Please sign in first", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (ownerId == null || ownerId.equals(user.getUid())) return;
+        join.setEnabled(false);
+        com.google.firebase.firestore.DocumentReference requestRef = db.collection("teams")
+                .document(teamId).collection("joinRequests").document(user.getUid());
+        // A transaction prevents duplicate pending requests from rapid taps.
+        db.runTransaction(transaction -> {
+            DocumentSnapshot previous = transaction.get(requestRef);
+            if (previous.exists() && "pending".equals(previous.getString("status"))) {
+                return false;
+            }
+            java.util.Map<String, Object> data = new java.util.HashMap<>();
+            data.put("teamId", teamId);
+            data.put("ownerId", ownerId);
+            data.put("requesterId", user.getUid());
+            data.put("status", "pending");
+            data.put("createdAt", FieldValue.serverTimestamp());
+            transaction.set(requestRef, data);
+            return true;
+        }).addOnSuccessListener(created -> {
+            join.setText("Pending");
+            Toast.makeText(this, created ? "Join request sent" : "Request already pending", Toast.LENGTH_SHORT).show();
+        }).addOnFailureListener(e -> {
+            join.setEnabled(true);
+            Toast.makeText(this, "Couldn't send request: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        });
     }
 
     private void loadPlayers() {

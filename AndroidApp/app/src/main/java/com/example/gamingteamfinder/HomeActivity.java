@@ -28,10 +28,8 @@ import android.widget.TextView;
 import com.example.gamingteamfinder.createTeam.CreateTeamActivity;
 
 import android.graphics.Typeface;
-import com.bumptech.glide.Glide;
 import com.example.gamingteamfinder.teamDetails.TeamDetailsActivity;
 import com.example.gamingteamfinder.utils.TeamLogoHelper;
-import com.example.gamingteamfinder.utils.TeamScheduleFormatter;
 
 
 public class HomeActivity extends AppCompatActivity {
@@ -257,51 +255,33 @@ public class HomeActivity extends AppCompatActivity {
                         String teamName = doc.getString("teamName");
                         String logoId = doc.getString("logoId");
 
-                        List<String> days = new ArrayList<>();
-
-                        Object rawDays = doc.get("days");
-                        if (rawDays instanceof List<?>) {
-                            for (Object day : (List<?>) rawDays) {
-                                if (day instanceof String) {
-                                    days.add((String) day);
-                                }
-                            }
-                        }
-
                         addTeamWidget(
                                 teamsContainer,
                                 teamId,
                                 teamName != null ? teamName : "Team",
-                                logoId,
-                                doc.getString("startTime"),
-                                doc.getString("endTime"),
-                                days,
-                                doc.getString("ownerTimeZone")
+                                logoId
                         );
                     }
                 });
     }
 
 
+
     private void addTeamWidget(
             LinearLayout container,
             String teamId,
             String teamName,
-            String logoId,
-            String startTime,
-            String endTime,
-            List<String> days,
-            String ownerTimeZone
+            String logoId
     ) {
 
-        // Each team gets its own vertical layout
+        // Create team container
         LinearLayout teamItem = new LinearLayout(this);
         teamItem.setOrientation(LinearLayout.VERTICAL);
         teamItem.setGravity(Gravity.CENTER_HORIZONTAL);
         teamItem.setClickable(true);
         teamItem.setFocusable(true);
 
-        int width = dpToPx(150);
+        int width = dpToPx(96);
 
         LinearLayout.LayoutParams itemParams =
                 new LinearLayout.LayoutParams(
@@ -312,7 +292,7 @@ public class HomeActivity extends AppCompatActivity {
         itemParams.setMargins(0, 0, dpToPx(12), 0);
         teamItem.setLayoutParams(itemParams);
 
-        // Team logo
+        // Create team logo
         ImageView logo = new ImageView(this);
 
         LinearLayout.LayoutParams imageParams =
@@ -325,7 +305,7 @@ public class HomeActivity extends AppCompatActivity {
         logo.setScaleType(ImageView.ScaleType.CENTER_CROP);
         logo.setContentDescription(teamName + " logo");
 
-        // Circular background
+        // Circular logo background
         android.graphics.drawable.GradientDrawable circle =
                 new android.graphics.drawable.GradientDrawable();
 
@@ -338,14 +318,14 @@ public class HomeActivity extends AppCompatActivity {
         logo.setBackground(circle);
         logo.setClipToOutline(true);
 
-        // Display the preloaded team logo
+        // Display selected preloaded logo
         logo.setImageResource(
                 TeamLogoHelper.getDrawableId(this, logoId)
         );
 
         teamItem.addView(logo);
 
-        // Team name below logo
+        // Create team name
         TextView nameText = new TextView(this);
 
         nameText.setText(teamName);
@@ -367,39 +347,10 @@ public class HomeActivity extends AppCompatActivity {
         nameParams.topMargin = dpToPx(8);
         nameText.setLayoutParams(nameParams);
 
+        // Display team name under logo
         teamItem.addView(nameText);
-        TextView scheduleText = new TextView(this);
-        scheduleText.setTextSize(11);
-        scheduleText.setTextColor(Color.parseColor("#666666"));
-        scheduleText.setGravity(Gravity.CENTER);
-        scheduleText.setPadding(0, dpToPx(6), 0, 0);
 
-        scheduleText.setText("Loading play times...");
-        teamItem.addView(scheduleText);
-
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-
-        if (currentUser != null) {
-            db.collection("users")
-                    .document(currentUser.getUid())
-                    .get()
-                    .addOnSuccessListener(userDoc -> {
-                        scheduleText.setText(
-                                TeamScheduleFormatter.format(
-                                        startTime != null ? startTime : "",
-                                        endTime != null ? endTime : "",
-                                        days,
-                                        ownerTimeZone,
-                                        userDoc.getString("timeZone")
-                                )
-                        );
-                    })
-                    .addOnFailureListener(e ->
-                            scheduleText.setText("Schedule unavailable")
-                    );
-        }
-
-        // Open Team Details when clicked
+        // Open Team Details when tapped
         teamItem.setOnClickListener(v -> {
 
             Intent intent = new Intent(
@@ -412,8 +363,10 @@ public class HomeActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        // Add team widget to My Teams section
         container.addView(teamItem);
     }
+
 
     private int dpToPx(int dp) {
         return Math.round(

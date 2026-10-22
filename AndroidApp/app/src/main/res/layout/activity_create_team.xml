@@ -255,6 +255,7 @@
         <!-- VALORANT RANKS -->
         <!-- ========================= -->
 
+
         <GridLayout
             android:id="@+id/valorantRanksLayout"
             android:layout_width="match_parent"
@@ -263,68 +264,104 @@
             android:visibility="gone"
             android:layout_marginBottom="20dp">
 
-            <Button
+            <ImageButton
                 android:id="@+id/valIron"
                 android:layout_width="100dp"
-                android:layout_height="70dp"
-                android:text="Iron"
-                android:tag="Iron" />
+                android:layout_height="80dp"
+                android:src="@drawable/val_iron"
+                android:contentDescription="Iron Rank"
+                android:tag="Iron"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:background="#E0E0E0" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/valBronze"
                 android:layout_width="100dp"
-                android:layout_height="70dp"
-                android:text="Bronze"
-                android:tag="Bronze" />
+                android:layout_height="80dp"
+                android:src="@drawable/val_bronze"
+                android:contentDescription="Bronze Rank"
+                android:tag="Bronze"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:background="#E0E0E0" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/valSilver"
                 android:layout_width="100dp"
-                android:layout_height="70dp"
-                android:text="Silver"
-                android:tag="Silver" />
+                android:layout_height="80dp"
+                android:src="@drawable/val_silver"
+                android:contentDescription="Silver Rank"
+                android:tag="Silver"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:background="#E0E0E0" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/valGold"
                 android:layout_width="100dp"
-                android:layout_height="70dp"
-                android:text="Gold"
-                android:tag="Gold" />
+                android:layout_height="80dp"
+                android:src="@drawable/val_gold"
+                android:contentDescription="Gold Rank"
+                android:tag="Gold"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:background="#E0E0E0" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/valPlatinum"
                 android:layout_width="100dp"
-                android:layout_height="70dp"
-                android:text="Platinum"
-                android:tag="Platinum" />
+                android:layout_height="80dp"
+                android:src="@drawable/val_platinum"
+                android:contentDescription="Platinum Rank"
+                android:tag="Platinum"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:background="#E0E0E0" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/valDiamond"
                 android:layout_width="100dp"
-                android:layout_height="70dp"
-                android:text="Diamond"
-                android:tag="Diamond" />
+                android:layout_height="80dp"
+                android:src="@drawable/val_diamond"
+                android:contentDescription="Diamond Rank"
+                android:tag="Diamond"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:background="#E0E0E0" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/valAscendant"
                 android:layout_width="100dp"
-                android:layout_height="70dp"
-                android:text="Ascendant"
-                android:tag="Ascendant" />
+                android:layout_height="80dp"
+                android:src="@drawable/val_ascendant"
+                android:contentDescription="Ascendant Rank"
+                android:tag="Ascendant"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:background="#E0E0E0" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/valImmortal"
                 android:layout_width="100dp"
-                android:layout_height="70dp"
-                android:text="Immortal"
-                android:tag="Immortal" />
+                android:layout_height="80dp"
+                android:src="@drawable/val_immortal"
+                android:contentDescription="Immortal Rank"
+                android:tag="Immortal"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:background="#E0E0E0" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/valRadiant"
                 android:layout_width="100dp"
-                android:layout_height="70dp"
-                android:text="Radiant"
-                android:tag="Radiant" />
+                android:layout_height="80dp"
+                android:src="@drawable/val_radiant"
+                android:contentDescription="Radiant Rank"
+                android:tag="Radiant"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:background="#E0E0E0" />
 
         </GridLayout>
 
