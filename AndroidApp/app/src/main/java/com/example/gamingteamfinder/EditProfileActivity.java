@@ -14,11 +14,14 @@ import com.google.firebase.firestore.SetOptions;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
+import android.widget.Spinner;
+import android.widget.ArrayAdapter;
 
 public class EditProfileActivity extends AppCompatActivity {
 
     private EditText editDisplayName;
-    private EditText editRegion;
+    private Spinner spinnerRegion;
     private EditText editAbout;
     private EditText editGame;
     private EditText editRiotId;
@@ -40,7 +43,20 @@ public class EditProfileActivity extends AppCompatActivity {
 
         // Connect XML fields
         editDisplayName = findViewById(R.id.editDisplayName);
-        editRegion = findViewById(R.id.editRegion);
+        spinnerRegion = findViewById(R.id.spinnerRegion);
+
+        ArrayAdapter<String> regionAdapter =
+                new ArrayAdapter<>(
+                        this,
+                        android.R.layout.simple_spinner_item,
+                        LeagueRegions.LABELS
+                );
+
+        regionAdapter.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item
+        );
+
+        spinnerRegion.setAdapter(regionAdapter);
         editAbout = findViewById(R.id.editAbout);
         editGame = findViewById(R.id.editGame);
         editRiotId = findViewById(R.id.editRiotId);
@@ -77,8 +93,11 @@ public class EditProfileActivity extends AppCompatActivity {
                                 documentSnapshot.getString("displayName")
                         );
 
-                        editRegion.setText(
-                                documentSnapshot.getString("region")
+                        String savedRegion =
+                                documentSnapshot.getString("region");
+
+                        spinnerRegion.setSelection(
+                                LeagueRegions.findPosition(savedRegion)
                         );
 
                         editAbout.setText(
@@ -123,7 +142,19 @@ public class EditProfileActivity extends AppCompatActivity {
         }
 
         String displayName = editDisplayName.getText().toString().trim();
-        String region = editRegion.getText().toString().trim();
+        int selectedRegion = spinnerRegion.getSelectedItemPosition();
+
+        if (selectedRegion == 0) {
+            Toast.makeText(
+                    this,
+                    "Please select your server and time zone",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
+        String region = LeagueRegions.LABELS[selectedRegion];
+        String timeZone = LeagueRegions.getTimeZone(selectedRegion);
+        String server = LeagueRegions.getServer(selectedRegion);
         String about = editAbout.getText().toString().trim();
         String game = editGame.getText().toString().trim();
         String riotId = editRiotId.getText().toString().trim();
@@ -145,6 +176,8 @@ public class EditProfileActivity extends AppCompatActivity {
         profile.put("email", currentUser.getEmail());
         profile.put("displayName", displayName);
         profile.put("region", region);
+        profile.put("server", server);
+        profile.put("timeZone", timeZone);
         profile.put("about", about);
         profile.put("game", game);
         profile.put("riotId", riotId);

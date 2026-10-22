@@ -48,13 +48,13 @@
             android:textStyle="bold"
             android:layout_marginBottom="6dp" />
 
-        <EditText
-            android:id="@+id/editRegion"
+        <Spinner
+            android:id="@+id/spinnerRegion"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Example: North America"
             android:background="#FFFFFF"
             android:padding="14dp"
+            android:minHeight="52dp"
             android:layout_marginBottom="16dp" />
 
         <TextView

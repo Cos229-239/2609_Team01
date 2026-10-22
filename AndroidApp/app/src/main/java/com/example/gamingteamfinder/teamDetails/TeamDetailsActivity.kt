@@ -14,6 +14,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.bumptech.glide.Glide
+import com.example.gamingteamfinder.utils.TeamLogoHelper
+import com.example.gamingteamfinder.utils.TeamScheduleFormatter
 
 
 class TeamDetailsActivity : AppCompatActivity() {
@@ -70,11 +72,15 @@ class TeamDetailsActivity : AppCompatActivity() {
                 val requirements = document.getString("requirements").orEmpty()
                 val startTime = document.getString("startTime").orEmpty()
                 val endTime = document.getString("endTime").orEmpty()
-                val days = document.get("days") as? List<*> ?: emptyList<Any>()
+                val days = (document.get("days") as? List<*>)
+                    ?.filterIsInstance<String>()
+                    ?: emptyList()
+
+                val ownerTimeZone = document.getString("ownerTimeZone")
                 val count = document.getLong("currentPlayers") ?: 1L
                 val max = document.getLong("maxPlayers") ?: 5L
                 val ownerId = document.getString("ownerId")
-                val logoUrl = document.getString("logoUrl").orEmpty()
+                val logoId = document.getString("logoId")
 
                 findViewById<TextView>(R.id.textTeamName).text = name
                 findViewById<TextView>(R.id.textMemberCount).text =
@@ -86,8 +92,33 @@ class TeamDetailsActivity : AppCompatActivity() {
                     about.ifBlank { "No description provided" }
                 findViewById<TextView>(R.id.textRequirements).text =
                     requirements.ifBlank { "No additional requirements" }
-                findViewById<TextView>(R.id.textPlayTime).text =
-                    "$startTime - $endTime\n${days.joinToString(", ")}"
+                val playTimeView = findViewById<TextView>(R.id.textPlayTime)
+                val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+
+                if (currentUserId == null) {
+                    playTimeView.text =
+                        "$startTime - $endTime\n${days.joinToString(", ")}"
+                } else {
+                    db.collection("users")
+                        .document(currentUserId)
+                        .get()
+                        .addOnSuccessListener { userDocument ->
+
+                            val viewerTimeZone = userDocument.getString("timeZone")
+
+                            playTimeView.text = TeamScheduleFormatter.format(
+                                startTime,
+                                endTime,
+                                days,
+                                ownerTimeZone,
+                                viewerTimeZone
+                            )
+                        }
+                        .addOnFailureListener {
+                            playTimeView.text =
+                                "$startTime - $endTime\n${days.joinToString(", ")}\nUnable to load your time zone"
+                        }
+                }
 
                 // The owner is already a member
                 val currentUid = FirebaseAuth.getInstance().currentUser?.uid
@@ -102,7 +133,7 @@ class TeamDetailsActivity : AppCompatActivity() {
                 }
 
                 // Logo loading is added in Step 4
-                showTeamLogo(logoUrl)
+                showTeamLogo(logoId)
             }
     }
 
@@ -152,19 +183,12 @@ class TeamDetailsActivity : AppCompatActivity() {
             }
     }
 
-    private fun showTeamLogo(url: String) {
+    private fun showTeamLogo(logoId: String?) {
         val imageView = findViewById<ImageView>(R.id.imageTeamLogo)
 
-        if (url.isBlank()) {
-            imageView.setImageResource(android.R.drawable.ic_menu_gallery)
-            return
-        }
-
-        Glide.with(this)
-            .load(url)
-            .placeholder(android.R.drawable.ic_menu_gallery)
-            .error(android.R.drawable.ic_menu_gallery)
-            .into(imageView)
+        imageView.setImageResource(
+            TeamLogoHelper.getDrawableId(this, logoId)
+        )
     }
 
     override fun onDestroy() {

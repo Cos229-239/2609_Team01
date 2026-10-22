@@ -19,16 +19,15 @@ import android.widget.RadioGroup
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FieldValue
-import android.net.Uri
 import android.widget.ImageView
-import androidx.activity.result.contract.ActivityResultContracts
-import com.google.firebase.storage.FirebaseStorage
 import android.content.Intent
 import com.example.gamingteamfinder.teamDetails.TeamDetailsActivity
+import android.app.AlertDialog
 
 class CreateTeamActivity : AppCompatActivity() {
 
     private val maxTeamSize = 5
+    private var selectedLogoId: String = "team_logo_01"
 
     private lateinit var leagueRanksLayout: GridLayout
     private lateinit var valorantRanksLayout: GridLayout
@@ -38,18 +37,24 @@ class CreateTeamActivity : AppCompatActivity() {
 
 
     // Stores the rank buttons currently selected
-    private val selectedRanks = mutableListOf<ImageButton>()
+    private val selectedRanks = mutableListOf<View>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_team)
+        // Back button
+        val buttonBack = findViewById<Button>(R.id.buttonBack)
+
+        buttonBack.setOnClickListener {
+            finish()
+        }
 
         val buttonChooseLogo = findViewById<Button>(
             R.id.buttonChooseLogo
         )
 
         buttonChooseLogo.setOnClickListener {
-            pickTeamLogo.launch("image/*")
+            showLogoPicker()
         }
 
         leagueRanksLayout = findViewById(R.id.leagueRanksLayout)
@@ -82,38 +87,77 @@ class CreateTeamActivity : AppCompatActivity() {
         }
     }
 
-    private fun uploadTeamLogo(
-        teamId: String,
-        onSuccess: (String) -> Unit,
-        onFailure: (Exception) -> Unit
-    ) {
-        val logoUri = selectedLogoUri
+    private fun showLogoPicker() {
 
-        // No logo selected: save an empty URL
-        if (logoUri == null) {
-            onSuccess("")
+        val logoIds = (1..8).map {
+            "team_logo_%02d".format(it)
+        }
+
+        val grid = GridLayout(this).apply {
+            columnCount = 4
+            setPadding(24, 24, 24, 24)
+        }
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Choose a Team Logo")
+            .setView(grid)
+            .setNegativeButton("Cancel", null)
+            .create()
+
+        var foundLogos = 0
+
+        logoIds.forEach { logoId ->
+
+            val resourceId = resources.getIdentifier(
+                logoId,
+                "drawable",
+                packageName
+            )
+
+            if (resourceId != 0) {
+
+                foundLogos++
+
+                val logoView = ImageView(this).apply {
+
+                    setImageResource(resourceId)
+                    scaleType = ImageView.ScaleType.FIT_CENTER
+                    setPadding(8, 8, 8, 8)
+
+                    layoutParams = GridLayout.LayoutParams().apply {
+                        width = (72 * resources.displayMetrics.density).toInt()
+                        height = (72 * resources.displayMetrics.density).toInt()
+                    }
+
+                    contentDescription = logoId
+
+                    setOnClickListener {
+
+                        selectedLogoId = logoId
+
+                        // Find the preview ImageView in CreateTeamActivity
+                        this@CreateTeamActivity.findViewById<ImageView>(
+                            R.id.imageTeamLogo
+                        ).setImageResource(resourceId)
+
+                        dialog.dismiss()
+                    }
+                }
+
+                grid.addView(logoView)
+            }
+        }
+
+        if (foundLogos == 0) {
+            Toast.makeText(
+                this,
+                "No team logos found in drawable folder",
+                Toast.LENGTH_LONG
+            ).show()
             return
         }
 
-        val storageRef = FirebaseStorage.getInstance()
-            .reference
-            .child("team_logos/$teamId/logo")
-
-        storageRef.putFile(logoUri)
-            .continueWithTask { task ->
-                if (!task.isSuccessful) {
-                    throw task.exception
-                        ?: Exception("Logo upload failed")
-                }
-
-                storageRef.downloadUrl
-            }
-            .addOnSuccessListener { downloadUri ->
-                onSuccess(downloadUri.toString())
-            }
-            .addOnFailureListener { exception ->
-                onFailure(exception)
-            }
+        dialog.show()
     }
 
     private fun showTimePicker(button: Button) {
@@ -184,7 +228,7 @@ class CreateTeamActivity : AppCompatActivity() {
 
             val view = layout.getChildAt(i)
 
-            if (view is ImageButton) {
+            if (view is Button || view is ImageButton) {
 
                 view.setOnClickListener {
                     selectRank(view)
@@ -193,21 +237,7 @@ class CreateTeamActivity : AppCompatActivity() {
         }
     }
 
-    private var selectedLogoUri: Uri? = null
-
-    private val pickTeamLogo = registerForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri ->
-
-        if (uri != null) {
-            selectedLogoUri = uri
-
-            findViewById<ImageView>(
-                R.id.imageTeamLogo
-            ).setImageURI(uri)
-        }
-    }
-    private fun selectRank(button: ImageButton) {
+    private fun selectRank(button: View) {
 
         // If already selected, deselect it
         if (selectedRanks.contains(button)) {
@@ -393,62 +423,70 @@ class CreateTeamActivity : AppCompatActivity() {
 
         // 10. Prepare Firestore
         val db = FirebaseFirestore.getInstance()
-        val teamRef = db.collection("teams").document()
 
-        val teamData = hashMapOf<String, Any>(
-            "teamId" to teamRef.id,
-            "teamName" to teamName,
-            "logoUrl" to "",
-            "ownerId" to user.uid,
-            "game" to game,
-            "minRank" to ranks[0],
-            "maxRank" to ranks[1],
-            "gameMode" to gameMode,
-            "maxPlayers" to maxTeamSize,
-            "currentPlayers" to 1,
-            "memberIds" to listOf(user.uid),
-            "startTime" to startTime,
-            "endTime" to endTime,
-            "days" to selectedDays,
-            "voiceChat" to voiceChat,
-            "about" to about,
-            "requirements" to requirements,
-            "status" to "open",
-            "createdAt" to FieldValue.serverTimestamp()
-        )
-
-        // 11. Disable button while saving
-        val createButton = findViewById<Button>(
-            R.id.buttonCreateTeam
-        )
-
-        createButton.isEnabled = false
-
-        // 12. Save team and creator together
-        val memberRef = teamRef.collection("members")
+        // Read the time zone selected in the user's profile
+        db.collection("users")
             .document(user.uid)
+            .get()
+            .addOnSuccessListener { userDocument ->
 
-        val memberData = hashMapOf<String, Any>(
-            "userId" to user.uid,
-            "role" to "owner",
-            "joinedAt" to FieldValue.serverTimestamp()
-        )
+                val ownerTimeZone = userDocument.getString("timeZone")
 
-        val batch = db.batch()
-        batch.set(teamRef, teamData)
-        batch.set(memberRef, memberData)
+                if (ownerTimeZone.isNullOrBlank()) {
+                    Toast.makeText(
+                        this,
+                        "Please select a server/time zone in Edit Profile first",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return@addOnSuccessListener
+                }
 
-        uploadTeamLogo(
-            teamRef.id,
-            onSuccess = { logoUrl ->
+                val teamRef = db.collection("teams").document()
 
-                // Add the uploaded logo URL to team data
-                teamData["logoUrl"] = logoUrl
+                val teamData = hashMapOf<String, Any>(
+                    "teamId" to teamRef.id,
+                    "teamName" to teamName,
+                    "logoId" to selectedLogoId,
+                    "ownerId" to user.uid,
+                    "ownerTimeZone" to ownerTimeZone,
+                    "game" to game,
+                    "minRank" to ranks[0],
+                    "maxRank" to ranks[1],
+                    "gameMode" to gameMode,
+                    "maxPlayers" to maxTeamSize,
+                    "currentPlayers" to 1,
+                    "memberIds" to listOf(user.uid),
+                    "startTime" to startTime,
+                    "endTime" to endTime,
+                    "days" to selectedDays,
+                    "voiceChat" to voiceChat,
+                    "about" to about,
+                    "requirements" to requirements,
+                    "status" to "open",
+                    "createdAt" to FieldValue.serverTimestamp()
+                )
 
-                // Save team and owner membership to Firestore
+                val memberRef = teamRef.collection("members")
+                    .document(user.uid)
+
+                val memberData = hashMapOf<String, Any>(
+                    "userId" to user.uid,
+                    "role" to "owner",
+                    "joinedAt" to FieldValue.serverTimestamp()
+                )
+
+                val createButton = findViewById<Button>(
+                    R.id.buttonCreateTeam
+                )
+
+                createButton.isEnabled = false
+
+                val batch = db.batch()
+                batch.set(teamRef, teamData)
+                batch.set(memberRef, memberData)
+
                 batch.commit()
                     .addOnSuccessListener {
-
                         Toast.makeText(
                             this,
                             "Team created successfully!",
@@ -466,7 +504,6 @@ class CreateTeamActivity : AppCompatActivity() {
                         finish()
                     }
                     .addOnFailureListener { exception ->
-
                         createButton.isEnabled = true
 
                         Toast.makeText(
@@ -475,18 +512,13 @@ class CreateTeamActivity : AppCompatActivity() {
                             Toast.LENGTH_LONG
                         ).show()
                     }
-            },
-            onFailure = { exception ->
-
-                createButton.isEnabled = true
-
+            }
+            .addOnFailureListener { exception ->
                 Toast.makeText(
                     this,
-                    "Logo upload failed: ${exception.message}",
+                    "Failed to load profile time zone: ${exception.message}",
                     Toast.LENGTH_LONG
                 ).show()
             }
-        )
     }
-
 }

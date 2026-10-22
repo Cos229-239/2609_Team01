@@ -13,6 +13,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.TimeZone;
 
 public class ProfileActivity extends AppCompatActivity {
 
@@ -119,7 +120,6 @@ public class ProfileActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        // Reload after returning from Edit Profile
         loadProfile();
     }
 
@@ -174,6 +174,11 @@ public class ProfileActivity extends AppCompatActivity {
 
         String displayName = getValue(document, "displayName");
         String region = getValue(document, "region");
+        String timeZone = document.getString("timeZone");
+
+        if (timeZone == null || timeZone.isEmpty()) {
+            timeZone = TimeZone.getDefault().getID();
+        }
         String about = getValue(document, "about");
         String game = getValue(document, "game");
         String riotId = getValue(document, "riotId");
@@ -182,7 +187,9 @@ public class ProfileActivity extends AppCompatActivity {
         String availability = getValue(document, "availability");
 
         textDisplayName.setText(displayName);
-        textRegion.setText(region);
+        textRegion.setText(
+                region + "\nTime Zone: " + timeZone
+        );
         textAbout.setText(about);
         textGame.setText(game);
         textRiotId.setText(riotId);

@@ -30,6 +30,8 @@ import com.example.gamingteamfinder.createTeam.CreateTeamActivity;
 import android.graphics.Typeface;
 import com.bumptech.glide.Glide;
 import com.example.gamingteamfinder.teamDetails.TeamDetailsActivity;
+import com.example.gamingteamfinder.utils.TeamLogoHelper;
+import com.example.gamingteamfinder.utils.TeamScheduleFormatter;
 
 
 public class HomeActivity extends AppCompatActivity {
@@ -253,13 +255,28 @@ public class HomeActivity extends AppCompatActivity {
 
                         String teamId = doc.getId();
                         String teamName = doc.getString("teamName");
-                        String logoUrl = doc.getString("logoUrl");
+                        String logoId = doc.getString("logoId");
+
+                        List<String> days = new ArrayList<>();
+
+                        Object rawDays = doc.get("days");
+                        if (rawDays instanceof List<?>) {
+                            for (Object day : (List<?>) rawDays) {
+                                if (day instanceof String) {
+                                    days.add((String) day);
+                                }
+                            }
+                        }
 
                         addTeamWidget(
                                 teamsContainer,
                                 teamId,
                                 teamName != null ? teamName : "Team",
-                                logoUrl
+                                logoId,
+                                doc.getString("startTime"),
+                                doc.getString("endTime"),
+                                days,
+                                doc.getString("ownerTimeZone")
                         );
                     }
                 });
@@ -270,7 +287,11 @@ public class HomeActivity extends AppCompatActivity {
             LinearLayout container,
             String teamId,
             String teamName,
-            String logoUrl
+            String logoId,
+            String startTime,
+            String endTime,
+            List<String> days,
+            String ownerTimeZone
     ) {
 
         // Each team gets its own vertical layout
@@ -280,7 +301,7 @@ public class HomeActivity extends AppCompatActivity {
         teamItem.setClickable(true);
         teamItem.setFocusable(true);
 
-        int width = dpToPx(96);
+        int width = dpToPx(150);
 
         LinearLayout.LayoutParams itemParams =
                 new LinearLayout.LayoutParams(
@@ -317,18 +338,10 @@ public class HomeActivity extends AppCompatActivity {
         logo.setBackground(circle);
         logo.setClipToOutline(true);
 
-        // Load uploaded logo, or use a placeholder
-        if (logoUrl != null && !logoUrl.isEmpty()) {
-            Glide.with(this)
-                    .load(logoUrl)
-                    .placeholder(android.R.drawable.ic_menu_gallery)
-                    .error(android.R.drawable.ic_menu_gallery)
-                    .into(logo);
-        } else {
-            logo.setImageResource(
-                    android.R.drawable.ic_menu_gallery
-            );
-        }
+        // Display the preloaded team logo
+        logo.setImageResource(
+                TeamLogoHelper.getDrawableId(this, logoId)
+        );
 
         teamItem.addView(logo);
 
@@ -355,6 +368,36 @@ public class HomeActivity extends AppCompatActivity {
         nameText.setLayoutParams(nameParams);
 
         teamItem.addView(nameText);
+        TextView scheduleText = new TextView(this);
+        scheduleText.setTextSize(11);
+        scheduleText.setTextColor(Color.parseColor("#666666"));
+        scheduleText.setGravity(Gravity.CENTER);
+        scheduleText.setPadding(0, dpToPx(6), 0, 0);
+
+        scheduleText.setText("Loading play times...");
+        teamItem.addView(scheduleText);
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser != null) {
+            db.collection("users")
+                    .document(currentUser.getUid())
+                    .get()
+                    .addOnSuccessListener(userDoc -> {
+                        scheduleText.setText(
+                                TeamScheduleFormatter.format(
+                                        startTime != null ? startTime : "",
+                                        endTime != null ? endTime : "",
+                                        days,
+                                        ownerTimeZone,
+                                        userDoc.getString("timeZone")
+                                )
+                        );
+                    })
+                    .addOnFailureListener(e ->
+                            scheduleText.setText("Schedule unavailable")
+                    );
+        }
 
         // Open Team Details when clicked
         teamItem.setOnClickListener(v -> {

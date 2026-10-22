@@ -41,8 +41,9 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
 
     buildFeatures {
@@ -58,6 +59,7 @@ dependencies {
     implementation("com.google.firebase:firebase-storage")
     implementation("androidx.activity:activity-ktx:1.9.3")
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 
     implementation(libs.activity.ktx)
     implementation(libs.appcompat)
