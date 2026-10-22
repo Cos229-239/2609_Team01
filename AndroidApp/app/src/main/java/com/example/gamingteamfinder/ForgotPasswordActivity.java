@@ -103,6 +103,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         });
 
 
+
         // Check saved OTP request history
         updateSendOtpButton();
 
@@ -133,13 +134,23 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         }
 
 
-        if (OtpRequestHistory.getRemaining(this, email) <= 0) {
 
-            // Do not send requests during a backend rate limit
-            if (OtpRateLimitStore.getRemainingMs(this) > 0L) {
-                updateSendOtpButton();
-                return;
-            }
+        // Check backend rate limit first
+        if (OtpRateLimitStore.getRemainingMs(this) > 0L) {
+
+            updateSendOtpButton();
+
+            Toast.makeText(
+                    this,
+                    "Too many OTP requests. Please try again later.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
+        // Check locally recorded 10-request limit
+        if (OtpRequestHistory.getRemaining(this, email) <= 0) {
 
             updateSendOtpButton();
 
@@ -147,6 +158,21 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                     this,
                     "OTP request limit reached. Please try again later.",
                     Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
+
+        // Check the locally recorded 60-second cooldown
+        if (OtpRequestHistory.getCooldownRemainingMs(this, email) > 0L) {
+
+            updateSendOtpButton();
+
+            Toast.makeText(
+                    this,
+                    "Please wait before requesting another OTP.",
+                    Toast.LENGTH_SHORT
             ).show();
 
             return;
@@ -284,7 +310,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                 email
         );
 
-// Check whether a backend rate limit is active
+        // Check whether a backend rate limit is active
         long blockedMs = OtpRateLimitStore.getRemainingMs(this);
 
         if (blockedMs > 0L) {
@@ -378,6 +404,9 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             otpLimitTimer.start();
             return;
         }
+
+
+
 
         // Local requests are available again
         textOtpLimitCountdown.setVisibility(View.GONE);

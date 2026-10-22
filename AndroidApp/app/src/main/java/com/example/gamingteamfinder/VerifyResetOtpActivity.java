@@ -13,6 +13,7 @@ import android.os.Looper;
 
 import android.os.CountDownTimer;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class VerifyResetOtpActivity extends AppCompatActivity {
@@ -140,7 +141,18 @@ public class VerifyResetOtpActivity extends AppCompatActivity {
 
         // Back to Forgot Password
         textBackToResetEmail.setOnClickListener(v ->
-                finish()
+                attemptBackToForgotPassword()
+        );
+
+        // Handle Android system Back button / gesture
+        getOnBackPressedDispatcher().addCallback(
+                this,
+                new OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        attemptBackToForgotPassword();
+                    }
+                }
         );
     }
 
@@ -320,6 +332,34 @@ public class VerifyResetOtpActivity extends AppCompatActivity {
         outState.putLong("resend_deadline", resendDeadline);
         super.onSaveInstanceState(outState);
     }
+
+
+    private void attemptBackToForgotPassword() {
+
+        long remainingMs = Math.max(
+                0L,
+                resendDeadline - SystemClock.elapsedRealtime()
+        );
+
+        // Resend cooldown is still active
+        if (remainingMs > 0L) {
+
+            long seconds = (remainingMs + 999L) / 1000L;
+
+            Toast.makeText(
+                    this,
+                    "Please wait " + seconds
+                            + " seconds before going back.",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            return;
+        }
+
+        // Cooldown finished: allow going back
+        finish();
+    }
+
 
     @Override
     protected void onDestroy() {
@@ -586,7 +626,7 @@ public class VerifyResetOtpActivity extends AppCompatActivity {
         textOtpRequestsRemaining.setText(
                 "OTP Requests Remaining: "
                         + remaining
-                        + "/10 (device estimate)"
+                        + "/10"
         );
     }
 

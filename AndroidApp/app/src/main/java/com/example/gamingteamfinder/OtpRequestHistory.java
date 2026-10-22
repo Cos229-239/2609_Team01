@@ -19,6 +19,8 @@ public final class OtpRequestHistory {
 
     private static final long WINDOW_MS =
             24L * 60 * 60 * 1000;
+    private static final long COOLDOWN_MS =
+            60L * 1000;
 
     private OtpRequestHistory() {
     }
@@ -199,6 +201,49 @@ public final class OtpRequestHistory {
                 oldestRequest + WINDOW_MS - System.currentTimeMillis()
         );
     }
+
+
+    public static synchronized long getCooldownRemainingMs(
+            Context context,
+            String email
+    ) {
+
+        SharedPreferences prefs =
+                context.getApplicationContext()
+                        .getSharedPreferences(
+                                PREFS_NAME,
+                                Context.MODE_PRIVATE
+                        );
+
+        JSONArray requests = loadRecentRequests(
+                prefs,
+                getEmailKey(email)
+        );
+
+        if (requests.length() == 0) {
+            return 0L;
+        }
+
+        // Find the most recent locally recorded request
+        long latestRequest = 0L;
+
+        for (int i = 0; i < requests.length(); i++) {
+
+            long timestamp = requests.optLong(i, 0L);
+
+            if (timestamp > latestRequest) {
+                latestRequest = timestamp;
+            }
+        }
+
+        // Remaining time in the 60-second cooldown
+        return Math.max(
+                0L,
+                latestRequest + COOLDOWN_MS
+                        - System.currentTimeMillis()
+        );
+    }
+
 
 
 
