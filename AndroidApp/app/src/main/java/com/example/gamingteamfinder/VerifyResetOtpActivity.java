@@ -192,7 +192,8 @@ public class VerifyResetOtpActivity extends AppCompatActivity {
         OtpApiClient.verifyOtp(
                 resetEmail,
                 otp,
-                (verified, resetToken, expiresInSeconds, message) -> {
+                (verified, resetToken, expiresInSeconds,
+                 message, remaining, maxRequests) -> {
 
                     if (isFinishing() || isDestroyed()) {
                         return;
@@ -239,6 +240,10 @@ public class VerifyResetOtpActivity extends AppCompatActivity {
                                 "otp_reset_deadline",
                                 resetDeadline
                         );
+
+                        // Pass the verified server quota when available
+                        intent.putExtra("otp_remaining", remaining);
+                        intent.putExtra("otp_max_requests", maxRequests);
 
                         startActivity(intent);
                         finish();

@@ -90,6 +90,17 @@ public class ResetPasswordActivity extends AppCompatActivity {
                 0L
         );
 
+        // Receive OTP quota from successful verification
+        int otpRemaining = getIntent().getIntExtra(
+                "otp_remaining",
+                -1
+        );
+
+        int otpMaxRequests = getIntent().getIntExtra(
+                "otp_max_requests",
+                -1
+        );
+
         // Back to Log in
         findViewById(R.id.buttonResetBackToLogin)
                 .setOnClickListener(v -> showBackToLoginConfirmation());

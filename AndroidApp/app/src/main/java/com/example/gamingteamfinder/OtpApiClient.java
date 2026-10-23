@@ -204,7 +204,9 @@ public final class OtpApiClient {
                 boolean verified,
                 String resetToken,
                 int expiresInSeconds,
-                String message
+                String message,
+                int remaining,
+                int maxRequests
         );
     }
 
@@ -229,6 +231,8 @@ public final class OtpApiClient {
                         boolean verified = false;
                         String resetToken = null;
                         int expiresInSeconds = 0;
+                        int remaining = -1;
+                        int maxRequests = -1;
 
                         String message =
                                 "Unable to verify OTP.";
@@ -306,6 +310,12 @@ public final class OtpApiClient {
                                 int receivedExpiry =
                                         result.optInt("expiresInSeconds", 0);
 
+                                int receivedRemaining =
+                                        result.optInt("remaining", -1);
+
+                                int receivedMaxRequests =
+                                        result.optInt("maxRequests", -1);
+
                                 if (result.optBoolean("verified", false)
                                         && receivedToken.matches("(?i)[a-f0-9]{64}")
                                         && receivedExpiry > 0
@@ -314,6 +324,14 @@ public final class OtpApiClient {
                                     verified = true;
                                     resetToken = receivedToken;
                                     expiresInSeconds = receivedExpiry;
+
+                                    if (receivedMaxRequests == 10
+                                            && receivedRemaining >= 0
+                                            && receivedRemaining <= receivedMaxRequests) {
+
+                                        remaining = receivedRemaining;
+                                        maxRequests = receivedMaxRequests;
+                                    }
 
                                     message =
                                             "OTP verified successfully!";
@@ -361,12 +379,17 @@ public final class OtpApiClient {
                         int finalExpiry = expiresInSeconds;
                         String finalMessage = message;
 
+                        int finalRemaining = remaining;
+                        int finalMaxRequests = maxRequests;
+
                         mainHandler.post(() ->
                                 callback.onResult(
                                         finalVerified,
                                         finalResetToken,
                                         finalExpiry,
-                                        finalMessage
+                                        finalMessage,
+                                        finalRemaining,
+                                        finalMaxRequests
                                 )
                         );
                     });
@@ -379,7 +402,9 @@ public final class OtpApiClient {
                                     false,
                                     null,
                                     0,
-                                    "Unable to verify the app."
+                                    "Unable to verify the app.",
+                                    -1,
+                                    -1
                             )
                     );
                 });
