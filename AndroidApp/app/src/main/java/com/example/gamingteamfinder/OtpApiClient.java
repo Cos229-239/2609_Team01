@@ -43,6 +43,28 @@ public final class OtpApiClient {
     private OtpApiClient() {
     }
 
+    static int[] readVerifiedOtpQuota(JSONObject result) {
+
+        // Only accept quota from successful verification
+        if (!result.optBoolean("verified", false)) {
+            return new int[]{-1, -1};
+        }
+
+        int remaining = result.optInt("remaining", -1);
+        int maxRequests = result.optInt("maxRequests", -1);
+
+        // Validate the values received from the backend
+        if (maxRequests != 10
+                || remaining < 0
+                || remaining > maxRequests) {
+
+            return new int[]{-1, -1};
+        }
+
+        return new int[]{remaining, maxRequests};
+    }
+
+
     public static void requestOtp(
             String email,
             Callback callback
@@ -310,11 +332,7 @@ public final class OtpApiClient {
                                 int receivedExpiry =
                                         result.optInt("expiresInSeconds", 0);
 
-                                int receivedRemaining =
-                                        result.optInt("remaining", -1);
-
-                                int receivedMaxRequests =
-                                        result.optInt("maxRequests", -1);
+                                int[] receivedQuota = readVerifiedOtpQuota(result);
 
                                 if (result.optBoolean("verified", false)
                                         && receivedToken.matches("(?i)[a-f0-9]{64}")
@@ -325,13 +343,8 @@ public final class OtpApiClient {
                                     resetToken = receivedToken;
                                     expiresInSeconds = receivedExpiry;
 
-                                    if (receivedMaxRequests == 10
-                                            && receivedRemaining >= 0
-                                            && receivedRemaining <= receivedMaxRequests) {
-
-                                        remaining = receivedRemaining;
-                                        maxRequests = receivedMaxRequests;
-                                    }
+                                    remaining = receivedQuota[0];
+                                    maxRequests = receivedQuota[1];
 
                                     message =
                                             "OTP verified successfully!";
