@@ -86,38 +86,17 @@
                 android:gravity="center"
                 android:layout_marginBottom="12dp" />
 
-
+            <!-- OTP request limit -->
             <TextView
                 android:id="@+id/textOtpRequestsRemaining"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="OTP Requests Remaining: --/10"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="#30364F"
-                android:gravity="center"
-                android:layout_marginBottom="4dp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Maximum 10 requests per 24 hours"
+                android:text="Limit: 10 OTP requests per 24 hours."
                 android:textSize="12sp"
                 android:textColor="#747887"
                 android:gravity="center"
                 android:layout_marginBottom="20dp" />
 
-            <TextView
-                android:id="@+id/textResetTimeNotice"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="18dp"
-                android:text="@string/otp_reset_time_notice"
-                android:fontFamily="sans-serif-medium"
-                android:textSize="13sp"
-                android:textColor="#5F5963"
-                android:gravity="center"
-                android:lineSpacingExtra="3dp" />
 
 
             <Button
@@ -129,6 +108,20 @@
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
                 android:backgroundTint="#376DA4" />
+
+            <!-- After verification notice -->
+            <TextView
+                android:id="@+id/textResetTimeNotice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="8dp"
+                android:text="@string/otp_reset_time_notice"
+                android:fontFamily="sans-serif-medium"
+                android:textSize="13sp"
+                android:textColor="#5F5963"
+                android:gravity="center"
+                android:lineSpacingExtra="3dp" />
 
             <TextView
                 android:id="@+id/textResendOtp"

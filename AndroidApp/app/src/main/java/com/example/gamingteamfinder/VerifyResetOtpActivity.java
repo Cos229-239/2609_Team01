@@ -210,26 +210,13 @@ public class VerifyResetOtpActivity extends AppCompatActivity {
                             && expiresInSeconds > 0) {
 
 
-                        String successMessage = "OTP verified successfully!";
-
-                        // Only display the server quota if it was
-                        // returned after successful OTP verification.
-                        if (remaining >= 0
-                                && maxRequests == 10
-                                && remaining <= maxRequests) {
-
-                            successMessage =
-                                    "OTP verified! Requests remaining: "
-                                            + remaining
-                                            + "/"
-                                            + maxRequests;
-                        }
 
                         Toast.makeText(
                                 VerifyResetOtpActivity.this,
-                                successMessage,
+                                "OTP verified successfully!",
                                 Toast.LENGTH_LONG
                         ).show();
+
 
 
                         // Calculate reset deadline
@@ -605,19 +592,15 @@ public class VerifyResetOtpActivity extends AppCompatActivity {
     }
 
 
+
+
     private void updateRequestCount() {
-
-        int remaining = OtpRequestHistory.getRemaining(
-                this,
-                resetEmail
-        );
-
         textOtpRequestsRemaining.setText(
-                "OTP Requests Remaining: "
-                        + remaining
-                        + "/10"
+                "Limit: 10 OTP requests per 24 hours."
         );
     }
+
+
 
     @Override
     protected void onResume() {
