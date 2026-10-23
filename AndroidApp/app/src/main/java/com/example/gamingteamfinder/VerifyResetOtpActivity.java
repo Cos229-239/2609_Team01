@@ -431,28 +431,6 @@ public class VerifyResetOtpActivity extends AppCompatActivity {
         }
 
 
-        if (OtpRequestHistory.getRemaining(this, resetEmail) <= 0) {
-
-            textResendOtp.setText("OTP Limit Reached");
-            textResendOtp.setEnabled(false);
-            textResendOtp.setAlpha(0.5f);
-
-            // Time until the oldest locally recorded request expires
-            long waitMs = OtpRequestHistory.getTimeUntilNextRequestMs(
-                    this,
-                    resetEmail
-            );
-
-            if (waitMs > 0L) {
-                rateLimitHandler.postDelayed(
-                        rateLimitRefresh,
-                        waitMs + 1000L
-                );
-            }
-
-            return;
-        }
-
 
 
         long remaining = Math.max(
@@ -508,20 +486,6 @@ public class VerifyResetOtpActivity extends AppCompatActivity {
             return;
         }
 
-        // Prevent resend when local request limit is reached
-        if (OtpRequestHistory.getRemaining(this, resetEmail) <= 0) {
-
-            updateResendCountdown();
-
-            Toast.makeText(
-                    this,
-                    "OTP request limit reached. Please try again later.",
-                    Toast.LENGTH_LONG
-            ).show();
-
-            return;
-        }
-
         sendingOtp = true;
 
         textResendOtp.setEnabled(false);
@@ -561,21 +525,24 @@ public class VerifyResetOtpActivity extends AppCompatActivity {
 
 
 
+
                     if (accepted) {
 
-                        // Record the resend request
+                        // Record a request accepted by the API on this device.
+                        // HTTP 202 does not guarantee an OTP was sent.
                         OtpRequestHistory.recordAcceptedRequest(
                                 VerifyResetOtpActivity.this,
                                 resetEmail
                         );
 
-                        // Refresh the displayed remaining count
+                        // Refresh the locally estimated remaining count
                         updateRequestCount();
 
                         // Start another 60-second cooldown
                         resendDeadline =
                                 SystemClock.elapsedRealtime()
                                         + RESEND_COOLDOWN_MS;
+
 
                         // Restart the estimated 3-minute OTP timer
                         otpDeadline =
@@ -596,7 +563,7 @@ public class VerifyResetOtpActivity extends AppCompatActivity {
 
                         Toast.makeText(
                                 VerifyResetOtpActivity.this,
-                                "Request received. Check your email for a new code.",
+                                "Request received. Check your email if a new code was sent.",
                                 Toast.LENGTH_LONG
                         ).show();
 

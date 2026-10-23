@@ -149,19 +149,6 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             return;
         }
 
-        // Check locally recorded 10-request limit
-        if (OtpRequestHistory.getRemaining(this, email) <= 0) {
-
-            updateSendOtpButton();
-
-            Toast.makeText(
-                    this,
-                    "OTP request limit reached. Please try again later.",
-                    Toast.LENGTH_LONG
-            ).show();
-
-            return;
-        }
 
 
         // Check the locally recorded 60-second cooldown
@@ -237,7 +224,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
 
                         Toast.makeText(
                                 ForgotPasswordActivity.this,
-                                "Check your email for the verification code.",
+                                "Request received. Check your email if a code was sent.",
                                 Toast.LENGTH_SHORT
                         ).show();
 
@@ -272,9 +259,10 @@ public class ForgotPasswordActivity extends AppCompatActivity {
 
 
 
+
     private void updateSendOtpButton() {
 
-        // Stop the previous countdown
+        // Stop the previous timer
         if (otpLimitTimer != null) {
             otpLimitTimer.cancel();
             otpLimitTimer = null;
@@ -284,81 +272,16 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             return;
         }
 
-        String email = editResetEmail.getText()
-                .toString()
-                .trim();
+        // Do not display an inaccurate local 24-hour countdown
+        textOtpLimitCountdown.setVisibility(View.GONE);
 
-        // Invalid email: hide countdown
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-
-            textOtpLimitCountdown.setVisibility(View.GONE);
-
-            buttonSendOtp.setEnabled(true);
-            buttonSendOtp.setText("Send OTP");
-
-            buttonSendOtp.setBackgroundTintList(
-                    ColorStateList.valueOf(
-                            Color.parseColor("#006B68")
-                    )
-            );
-
-            return;
-        }
-
-        int remaining = OtpRequestHistory.getRemaining(
-                this,
-                email
-        );
-
-        // Check whether a backend rate limit is active
+        // Check backend IP/global rate-limit deadline
         long blockedMs = OtpRateLimitStore.getRemainingMs(this);
 
         if (blockedMs > 0L) {
 
-            textOtpLimitCountdown.setVisibility(View.GONE);
-
             buttonSendOtp.setEnabled(false);
             buttonSendOtp.setText("Too Many Requests");
-
-            buttonSendOtp.setBackgroundTintList(
-                    ColorStateList.valueOf(
-                            Color.parseColor("#A7AAB5")
-                    )
-            );
-
-            // Recheck automatically when the backend wait ends
-            otpLimitTimer = new CountDownTimer(
-                    blockedMs,
-                    blockedMs
-            ) {
-                @Override
-                public void onTick(long millisUntilFinished) {
-                    // No countdown displayed for HTTP 429
-                }
-
-                @Override
-                public void onFinish() {
-                    updateSendOtpButton();
-                }
-            };
-
-            otpLimitTimer.start();
-            return;
-        }
-
-
-
-        long remainingMs =
-                OtpRequestHistory.getTimeUntilNextRequestMs(
-                        this,
-                        email
-                );
-
-        // Local request limit reached
-        if (remaining <= 0 && remainingMs > 0) {
-
-            buttonSendOtp.setEnabled(false);
-            buttonSendOtp.setText("OTP Limit Reached");
 
             // Grey button
             buttonSendOtp.setBackgroundTintList(
@@ -367,36 +290,19 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                     )
             );
 
-            textOtpLimitCountdown.setVisibility(View.VISIBLE);
-
-            updateLimitCountdownText(remainingMs);
-
-            // Start countdown until the oldest request expires
+            // Automatically unlock after the backend rate limit expires
             otpLimitTimer = new CountDownTimer(
-                    remainingMs,
+                    blockedMs,
                     1000
             ) {
-
                 @Override
                 public void onTick(long millisUntilFinished) {
-
-                    long timeLeft =
-                            OtpRequestHistory.getTimeUntilNextRequestMs(
-                                    ForgotPasswordActivity.this,
-                                    email
-                            );
-
-                    if (timeLeft <= 0) {
-                        cancel();
-                        updateSendOtpButton();
-                        return;
-                    }
-
-                    updateLimitCountdownText(timeLeft);
+                    // No visible countdown for HTTP 429
                 }
 
                 @Override
                 public void onFinish() {
+                    otpLimitTimer = null;
                     updateSendOtpButton();
                 }
             };
@@ -405,12 +311,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             return;
         }
 
-
-
-
-        // Local requests are available again
-        textOtpLimitCountdown.setVisibility(View.GONE);
-
+        // Normal button state
         buttonSendOtp.setEnabled(true);
         buttonSendOtp.setText("Send OTP");
 
@@ -420,6 +321,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                 )
         );
     }
+
 
 
     private void updateLimitCountdownText(long remainingMs) {
