@@ -33,13 +33,30 @@ android {
         buildConfigField("String", "RIOT_API_KEY", "\"$riotApiKey\"")
     }
 
+
     buildTypes {
-        release {
+
+        getByName("debug") {
+            buildConfigField(
+                "String",
+                "OTP_BACKEND_BASE_URL",
+                "\"https://gtf-otp-backend.vercel.app\""
+            )
+        }
+
+        getByName("release") {
             optimization {
                 enable = false
             }
+
+            buildConfigField(
+                "String",
+                "OTP_BACKEND_BASE_URL",
+                "\"https://gtf-otp-backend.vercel.app\""
+            )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11

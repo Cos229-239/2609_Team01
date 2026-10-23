@@ -20,11 +20,12 @@ import java.io.InputStreamReader;
 
 public final class OtpApiClient {
 
+
     private static final String REQUEST_OTP_URL =
-            "https://gtf-otp-backend.vercel.app/api/request-otp";
+            BuildConfig.OTP_BACKEND_BASE_URL + "/api/request-otp";
 
     private static final String VERIFY_OTP_URL =
-            "https://gtf-otp-backend.vercel.app/api/verify-otp";
+            BuildConfig.OTP_BACKEND_BASE_URL + "/api/verify-otp";
 
     private static final ExecutorService executor =
             Executors.newSingleThreadExecutor();
@@ -453,10 +454,12 @@ public final class OtpApiClient {
 
                         try {
 
+
                             URL url = new URL(
-                                    "https://gtf-otp-backend.vercel.app"
+                                    BuildConfig.OTP_BACKEND_BASE_URL
                                             + "/api/complete-password-reset"
                             );
+
 
                             connection =
                                     (HttpURLConnection) url.openConnection();
