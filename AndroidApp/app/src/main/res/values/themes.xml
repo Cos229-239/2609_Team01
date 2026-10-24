@@ -6,4 +6,28 @@
     </style>
 
     <style name="Theme.GamingTeamFinder" parent="Base.Theme.GamingTeamFinder" />
+
+    <style name="Theme.GamingTeamFinder.Starting"
+        parent="Theme.SplashScreen.IconBackground">
+
+        <!-- Main Splash Screen background -->
+        <item name="windowSplashScreenBackground">
+            #313172
+        </item>
+
+        <!-- Logo background: same as main background -->
+        <item name="windowSplashScreenIconBackgroundColor">
+            #313172
+        </item>
+
+        <!-- GTF Logo -->
+        <item name="windowSplashScreenAnimatedIcon">
+            @drawable/gtf_splash_colorful_safe
+        </item>
+
+        <item name="postSplashScreenTheme">
+            @style/Theme.GamingTeamFinder
+        </item>
+
+    </style>
 </resources>
