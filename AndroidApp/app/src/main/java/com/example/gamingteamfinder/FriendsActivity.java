@@ -13,6 +13,11 @@ import android.widget.Toast;
 import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.appcompat.app.AlertDialog;
+import android.content.res.ColorStateList;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -23,6 +28,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class FriendsActivity extends AppCompatActivity {
 
@@ -38,9 +45,10 @@ public class FriendsActivity extends AppCompatActivity {
 
     private final Map<String, Boolean> friendOnlineStates =
             new HashMap<>();
-
+    private ListenerRegistration friendsListListener;
     private int friendsLoadVersion = 0;
-
+    private int friendsRenderVersion = 0;
+    private final Set<String> activeFriendUids = new HashSet<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -128,9 +136,15 @@ public class FriendsActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
 
+        if (friendsListListener != null) {
+            friendsListListener.remove();
+            friendsListListener = null;
+        }
+
         clearFriendStatusListeners();
 
         friendsLoadVersion++;
+        friendsRenderVersion++;
     }
 
     private void loadFriendsList() {
@@ -148,6 +162,11 @@ public class FriendsActivity extends AppCompatActivity {
         int loadVersion =
                 ++friendsLoadVersion;
 
+        if (friendsListListener != null) {
+            friendsListListener.remove();
+            friendsListListener = null;
+        }
+
         clearFriendStatusListeners();
 
         friendOnlineStates.clear();
@@ -157,13 +176,36 @@ public class FriendsActivity extends AppCompatActivity {
 
         textOnlineHeader.setText("Online (0)");
 
-        db.collection("friends")
+        friendsListListener = db.collection("friends")
                 .whereArrayContains("members", currentUid)
-                .get()
-                .addOnSuccessListener(friendSnapshots -> {
-
+                .addSnapshotListener((friendSnapshots, error) -> {
 
                     if (loadVersion != friendsLoadVersion) {
+                        return;
+                    }
+
+                    final int renderVersion = ++friendsRenderVersion;
+
+                    clearFriendStatusListeners();
+                    friendOnlineStates.clear();
+                    activeFriendUids.clear();
+
+                    onlineFriendsContainer.removeAllViews();
+                    offlineFriendsContainer.removeAllViews();
+
+                    textOnlineHeader.setText("Online (0)");
+
+                    if (error != null || friendSnapshots == null) {
+                        TextView errorText = new TextView(this);
+
+                        errorText.setText(
+                                "Failed to load friends. Please try again."
+                        );
+
+                        errorText.setTextColor(Color.RED);
+                        errorText.setTextSize(14);
+
+                        offlineFriendsContainer.addView(errorText);
                         return;
                     }
 
@@ -173,54 +215,91 @@ public class FriendsActivity extends AppCompatActivity {
                         return;
                     }
 
+                    int invalidFriendRecords = 0;
+
                     for (QueryDocumentSnapshot friendDocument
                             : friendSnapshots) {
 
-                        List<String> members =
-                                (List<String>)
-                                        friendDocument.get("members");
+                        Object rawMembers =
+                                friendDocument.get("members");
 
-                        if (members == null) {
+                        if (!(rawMembers instanceof List)) {
+                            invalidFriendRecords++;
                             continue;
                         }
 
-                        String friendUid = null;
+                        List<?> members = (List<?>) rawMembers;
 
-                        for (String uid : members) {
+                        if (members.size() != 2
+                                || !(members.get(0) instanceof String)
+                                || !(members.get(1) instanceof String)) {
 
-                            if (!uid.equals(currentUid)) {
-
-                                friendUid = uid;
-                                break;
-                            }
-                        }
-
-                        if (friendUid == null) {
+                            invalidFriendRecords++;
                             continue;
                         }
+
+                        String firstUid = (String) members.get(0);
+                        String secondUid = (String) members.get(1);
+
+                        if (firstUid.trim().isEmpty()
+                                || secondUid.trim().isEmpty()
+                                || firstUid.equals(secondUid)
+                                || (!firstUid.equals(currentUid)
+                                && !secondUid.equals(currentUid))) {
+
+                            invalidFriendRecords++;
+                            continue;
+                        }
+
+                        String friendUid =
+                                currentUid.equals(firstUid)
+                                        ? secondUid
+                                        : firstUid;
 
 
                         String finalFriendUid =
                                 friendUid;
 
+                        activeFriendUids.add(finalFriendUid);
+
                         ListenerRegistration statusListener =
                                 db.collection("users")
                                         .document(finalFriendUid)
                                         .addSnapshotListener(
-                                                (userDocument, error) -> {
-
-                                                    if (loadVersion != friendsLoadVersion) {
+                                                (userDocument, userError) -> {
+                                                    if (loadVersion != friendsLoadVersion
+                                                            || renderVersion != friendsRenderVersion
+                                                            || !activeFriendUids.contains(finalFriendUid)) {
                                                         return;
                                                     }
-
-                                                    if (error != null
+                                                    if (userError != null
                                                             || userDocument == null
                                                             || !userDocument.exists()) {
 
+                                                        // Remove any previous row for this friend
+                                                        removeFriendRow(finalFriendUid);
+
+                                                        // Update online state
+                                                        friendOnlineStates.remove(finalFriendUid);
+                                                        updateOnlineHeader();
+
+                                                        if (userError != null) {
+
+                                                            showFriendWarning(
+                                                                    finalFriendUid,
+                                                                    "Could not load this friend's profile."
+                                                            );
+
+                                                        } else {
+
+                                                            showFriendWarning(
+                                                                    finalFriendUid,
+                                                                    "A friend's profile is unavailable."
+                                                            );
+                                                        }
+
                                                         return;
                                                     }
-
-
                                                     String displayName =
                                                             getValue(
                                                                     userDocument.getString(
@@ -309,18 +388,15 @@ public class FriendsActivity extends AppCompatActivity {
                                 statusListener
                         );
                     }
-                })
-                .addOnFailureListener(e -> {
 
-                    if (loadVersion != friendsLoadVersion) {
-                        return;
+                    // Show warning if some friendship records are invalid
+                    if (invalidFriendRecords > 0) {
+
+                        showFriendWarning(
+                                null,
+                                "Some friendship records could not be displayed."
+                        );
                     }
-
-                    Toast.makeText(
-                            FriendsActivity.this,
-                            "Failed to load friends.",
-                            Toast.LENGTH_SHORT
-                    ).show();
                 });
     }
 
@@ -628,6 +704,39 @@ public class FriendsActivity extends AppCompatActivity {
         actionRow.addView(chatButton);
 
         infoSection.addView(actionRow);
+
+// Remove Friend button
+        Button removeFriendButton = new Button(this);
+
+        removeFriendButton.setText("Remove Friend");
+        removeFriendButton.setTextSize(12);
+        removeFriendButton.setAllCaps(false);
+
+        removeFriendButton.setTextColor(
+                Color.parseColor("#C84545")
+        );
+
+        removeFriendButton.setBackgroundTintList(
+                ColorStateList.valueOf(
+                        Color.parseColor("#FBE9E9")
+                )
+        );
+
+        LinearLayout.LayoutParams removeParams =
+                new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        dp(42)
+                );
+
+        removeParams.topMargin = dp(8);
+        removeFriendButton.setLayoutParams(removeParams);
+
+        removeFriendButton.setOnClickListener(v -> {
+            confirmRemoveFriend(friendUid, displayName);
+        });
+
+        infoSection.addView(removeFriendButton);
+
         friendRow.addView(avatar);
         friendRow.addView(infoSection);
 
@@ -635,6 +744,32 @@ public class FriendsActivity extends AppCompatActivity {
 
 
         container.addView(friendRow);
+    }
+
+    private void showFriendWarning(
+            String friendUid,
+            String message
+    ) {
+
+        TextView warningText = new TextView(this);
+
+        warningText.setTag(friendUid);
+
+        warningText.setText(message);
+        warningText.setTextSize(14);
+
+        warningText.setTextColor(
+                Color.parseColor("#C84545")
+        );
+
+        warningText.setPadding(
+                dp(8),
+                dp(12),
+                dp(8),
+                dp(12)
+        );
+
+        offlineFriendsContainer.addView(warningText);
     }
 
     private void showNoFriends() {
@@ -662,6 +797,159 @@ public class FriendsActivity extends AppCompatActivity {
         offlineFriendsContainer.addView(
                 noFriends
         );
+    }
+
+    private void confirmRemoveFriend(
+            String friendUid,
+            String friendName
+    ) {
+
+        new AlertDialog.Builder(this)
+                .setTitle("Remove Friend")
+                .setMessage(
+                        "Are you sure you want to remove "
+                                + friendName
+                                + " from your friends list?"
+                )
+                .setNegativeButton("Cancel", (dialog, which) -> {
+                    dialog.dismiss();
+                })
+                .setPositiveButton("Remove", (dialog, which) -> {
+                    removeFriend(friendUid);
+                })
+                .show();
+    }
+
+    private void removeFriend(String friendUid) {
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser == null) {
+            Toast.makeText(this,
+                    "Please log in first.",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String currentUid = currentUser.getUid();
+
+        if (currentUid.equals(friendUid)) {
+            return;
+        }
+
+        // Match the friend document ID used when accepting requests
+        String friendId;
+
+        if (currentUid.compareTo(friendUid) < 0) {
+            friendId = currentUid + "_" + friendUid;
+        } else {
+            friendId = friendUid + "_" + currentUid;
+        }
+
+        DocumentReference friendRef =
+                db.collection("friends").document(friendId);
+
+        db.runTransaction(transaction -> {
+
+            DocumentSnapshot friendDoc =
+                    transaction.get(friendRef);
+
+            if (!friendDoc.exists()) {
+                throw new IllegalStateException(
+                        "Friendship no longer exists."
+                );
+            }
+
+            List<String> members =
+                    (List<String>) friendDoc.get("members");
+
+            if (members == null
+                    || members.size() != 2
+                    || !members.contains(currentUid)
+                    || !members.contains(friendUid)) {
+
+                throw new IllegalStateException(
+                        "Invalid friendship."
+                );
+            }
+
+            String fromUid =
+                    friendDoc.getString("user1Uid");
+
+            String toUid =
+                    friendDoc.getString("user2Uid");
+
+            if (fromUid == null || toUid == null
+                    || !members.contains(fromUid)
+                    || !members.contains(toUid)) {
+
+                throw new IllegalStateException(
+                        "Invalid friend request information."
+                );
+            }
+
+            // Find the original accepted request
+            DocumentReference requestRef =
+                    db.collection("playerRequests")
+                            .document(fromUid + "_" + toUid);
+
+            DocumentSnapshot requestDoc =
+                    transaction.get(requestRef);
+
+            // Remove the accepted request so users can add each other again
+            if (requestDoc.exists()) {
+
+                if (!"accepted".equals(
+                        requestDoc.getString("status"))) {
+
+                    throw new IllegalStateException(
+                            "Friend request status is inconsistent."
+                    );
+                }
+
+                transaction.delete(requestRef);
+            }
+
+            // Remove the friendship
+            transaction.delete(friendRef);
+
+            return null;
+
+        }).addOnSuccessListener(unused -> {
+
+            // Prevent old listeners from recreating this friend row
+            activeFriendUids.remove(friendUid);
+
+            // Remove the friend immediately from the UI
+            removeFriendRow(friendUid);
+
+            // Remove the friend's online state
+            friendOnlineStates.remove(friendUid);
+
+            // Update online friend count
+            updateOnlineHeader();
+
+            // Show empty message if no friends remain
+            if (onlineFriendsContainer.getChildCount() == 0
+                    && offlineFriendsContainer.getChildCount() == 0) {
+
+                showNoFriends();
+            }
+
+            Toast.makeText(
+                    FriendsActivity.this,
+                    "Friend removed successfully.",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+        }).addOnFailureListener(e -> {
+
+            Toast.makeText(
+                    FriendsActivity.this,
+                    "Failed to remove friend: " + e.getMessage(),
+                    Toast.LENGTH_LONG
+            ).show();
+        });
     }
 
     private void updateOnlineHeader() {
