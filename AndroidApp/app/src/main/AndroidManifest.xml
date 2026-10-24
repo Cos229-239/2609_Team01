@@ -52,12 +52,15 @@
         <activity
             android:name=".WelcomeActivity"
             android:exported="true"
+            android:theme="@style/Theme.GamingTeamFinder.Starting"
             android:windowSoftInputMode="adjustResize">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
         <activity
             android:name=".PlayerDetailActivity"
@@ -102,6 +105,11 @@
 
         <activity
             android:name=".ForgotPasswordActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".VerifyResetOtpActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 

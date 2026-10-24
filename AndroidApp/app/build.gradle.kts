@@ -33,13 +33,30 @@ android {
         buildConfigField("String", "RIOT_API_KEY", "\"$riotApiKey\"")
     }
 
+
     buildTypes {
-        release {
+
+        getByName("debug") {
+            buildConfigField(
+                "String",
+                "OTP_BACKEND_BASE_URL",
+                "\"https://gtf-otp-backend.vercel.app\""
+            )
+        }
+
+        getByName("release") {
             optimization {
                 enable = false
             }
+
+            buildConfigField(
+                "String",
+                "OTP_BACKEND_BASE_URL",
+                "\"https://gtf-otp-backend.vercel.app\""
+            )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -53,10 +70,22 @@ android {
 
 dependencies {
 
+    implementation("androidx.core:core-splashscreen:1.2.0")
     implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")
+
+
+    // Firebase App Check
+    implementation("com.google.firebase:firebase-appcheck")
+
+    // Android Studio Emulator and debug builds
+    debugImplementation("com.google.firebase:firebase-appcheck-debug")
+
+    // Production Android builds
+    releaseImplementation("com.google.firebase:firebase-appcheck-playintegrity")
+
     implementation("androidx.activity:activity-ktx:1.9.3")
     implementation("com.github.bumptech.glide:glide:4.16.0")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")

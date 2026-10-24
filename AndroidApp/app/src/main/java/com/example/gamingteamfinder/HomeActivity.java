@@ -38,6 +38,7 @@ public class HomeActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private TextView textNotificationBadge;
     private TextView textMessageBadge;
+    private ListenerRegistration notificationBadgeListener;
 
     private LinearLayout friendsContainer;
 
@@ -49,6 +50,10 @@ public class HomeActivity extends AppCompatActivity {
     private final List<ListenerRegistration> homeFriendStatusListeners =
             new ArrayList<>();
 
+    private ListenerRegistration homeFriendsListListener;
+    private int homeFriendsLoadVersion = 0;
+    private int homeFriendsRenderVersion = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,14 +64,14 @@ public class HomeActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-    // Notification badge
+        // Notification badge
         textNotificationBadge = findViewById(R.id.textNotificationBadge);
         textMessageBadge =
                 findViewById(R.id.textMessageBadge);
         FrameLayout notificationContainer =
                 findViewById(R.id.notificationContainer);
 
-    // Hide badge until Firestore finishes loading
+        // Hide badge until Firestore finishes loading
         textNotificationBadge.setVisibility(View.GONE);
         textMessageBadge.setVisibility(View.GONE);
 
@@ -380,6 +385,22 @@ public class HomeActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
 
+        // Stop notification listener when leaving Home
+        if (notificationBadgeListener != null) {
+            notificationBadgeListener.remove();
+            notificationBadgeListener = null;
+        }
+
+        // Stop listening for friendship changes
+        if (homeFriendsListListener != null) {
+            homeFriendsListListener.remove();
+            homeFriendsListListener = null;
+        }
+
+        // Invalidate old asynchronous callbacks
+        homeFriendsLoadVersion++;
+        homeFriendsRenderVersion++;
+
         if (messageUnreadListener != null) {
 
             messageUnreadListener.remove();
@@ -395,39 +416,60 @@ public class HomeActivity extends AppCompatActivity {
 
     private void loadNotificationBadge() {
 
+        // Remove previous listener
+        if (notificationBadgeListener != null) {
+            notificationBadgeListener.remove();
+            notificationBadgeListener = null;
+        }
+
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
+        // Hide badge until data is loaded
+        textNotificationBadge.setVisibility(View.GONE);
+
         if (currentUser == null) {
-            textNotificationBadge.setVisibility(View.GONE);
             return;
         }
 
         String currentUid = currentUser.getUid();
 
-        db.collection("playerRequests")
+        // Listen for pending friend requests in real time
+        notificationBadgeListener = db.collection("playerRequests")
                 .whereEqualTo("toUid", currentUid)
                 .whereEqualTo("status", "pending")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
+                .addSnapshotListener((snapshots, error) -> {
 
-                    int requestCount = queryDocumentSnapshots.size();
+                    if (error != null || snapshots == null) {
+
+                        android.util.Log.e(
+                                "HomeActivity",
+                                "Failed to load notification badge",
+                                error
+                        );
+
+                        textNotificationBadge.setVisibility(View.GONE);
+                        return;
+                    }
+
+                    int requestCount = snapshots.size();
 
                     if (requestCount > 0) {
 
-                        textNotificationBadge.setText(
-                                String.valueOf(requestCount)
-                        );
+                        String badgeText;
 
+                        if (requestCount > 99) {
+                            badgeText = "99+";
+                        } else {
+                            badgeText = String.valueOf(requestCount);
+                        }
+
+                        textNotificationBadge.setText(badgeText);
                         textNotificationBadge.setVisibility(View.VISIBLE);
 
                     } else {
 
                         textNotificationBadge.setVisibility(View.GONE);
                     }
-                })
-                .addOnFailureListener(e -> {
-
-                    textNotificationBadge.setVisibility(View.GONE);
                 });
     }
 
@@ -683,58 +725,116 @@ public class HomeActivity extends AppCompatActivity {
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
+        // Stop previous friends list listener
+        if (homeFriendsListListener != null) {
+            homeFriendsListListener.remove();
+            homeFriendsListListener = null;
+        }
+
+        clearHomeFriendStatusListeners();
+        friendsContainer.removeAllViews();
+
+        final int loadVersion = ++homeFriendsLoadVersion;
+
         if (currentUser == null) {
+            showNoFriends();
             return;
         }
 
         String currentUid = currentUser.getUid();
-        clearHomeFriendStatusListeners();
 
-        // Remove old friend cards
-        friendsContainer.removeAllViews();
-
-        db.collection("friends")
+        // Listen for friendship changes in real time
+        homeFriendsListListener = db.collection("friends")
                 .whereArrayContains("members", currentUid)
-                .get()
-                .addOnSuccessListener(friendSnapshots -> {
+                .addSnapshotListener((friendSnapshots, error) -> {
+
+                    if (loadVersion != homeFriendsLoadVersion) {
+                        return;
+                    }
+
+                    final int renderVersion =
+                            ++homeFriendsRenderVersion;
+
+                    clearHomeFriendStatusListeners();
+                    friendsContainer.removeAllViews();
+
+                    if (error != null || friendSnapshots == null) {
+
+                        TextView errorText = new TextView(this);
+                        errorText.setText("Failed to load friends.");
+                        errorText.setTextColor(Color.RED);
+                        errorText.setTextSize(14);
+
+                        friendsContainer.addView(errorText);
+                        return;
+                    }
 
                     if (friendSnapshots.isEmpty()) {
                         showNoFriends();
                         return;
                     }
 
-                    for (QueryDocumentSnapshot friendDocument : friendSnapshots) {
+                    int validFriends = 0;
+                    int invalidFriendRecords = 0;
 
-                        List<String> members =
-                                (List<String>) friendDocument.get("members");
+                    for (QueryDocumentSnapshot friendDocument
+                            : friendSnapshots) {
 
-                        if (members == null) {
+                        Object rawMembers =
+                                friendDocument.get("members");
+
+                        if (!(rawMembers instanceof List)) {
+                            invalidFriendRecords++;
                             continue;
                         }
 
-                        String friendUid = null;
+                        List<?> members = (List<?>) rawMembers;
 
-                        for (String uid : members) {
+                        if (members.size() != 2
+                                || !(members.get(0) instanceof String)
+                                || !(members.get(1) instanceof String)) {
 
-                            if (!uid.equals(currentUid)) {
-                                friendUid = uid;
-                                break;
-                            }
+                            invalidFriendRecords++;
+                            continue;
                         }
 
-                        if (friendUid == null) {
+                        String firstUid = (String) members.get(0);
+                        String secondUid = (String) members.get(1);
+
+                        if (firstUid.trim().isEmpty()
+                                || secondUid.trim().isEmpty()
+                                || firstUid.equals(secondUid)
+                                || (!firstUid.equals(currentUid)
+                                && !secondUid.equals(currentUid))) {
+
+                            invalidFriendRecords++;
                             continue;
                         }
 
                         String finalFriendUid =
-                                friendUid;
+                                currentUid.equals(firstUid)
+                                        ? secondUid
+                                        : firstUid;
+
+                        validFriends++;
 
                         db.collection("users")
                                 .document(finalFriendUid)
                                 .get()
                                 .addOnSuccessListener(userDocument -> {
 
+                                    // Prevent old callbacks from adding removed friends
+                                    if (loadVersion != homeFriendsLoadVersion
+                                            || renderVersion != homeFriendsRenderVersion) {
+                                        return;
+                                    }
+
                                     if (!userDocument.exists()) {
+
+                                        showHomeFriendWarning(
+                                                "A friend's profile is unavailable."
+                                        );
+
                                         return;
                                     }
 
@@ -743,12 +843,10 @@ public class HomeActivity extends AppCompatActivity {
 
                                     if (displayName == null
                                             || displayName.trim().isEmpty()) {
-
                                         displayName = "Player";
                                     }
 
-                                    String initials =
-                                            getInitials(displayName);
+                                    String initials = getInitials(displayName);
 
                                     Boolean onlineValue =
                                             userDocument.getBoolean("isOnline");
@@ -763,16 +861,30 @@ public class HomeActivity extends AppCompatActivity {
                                             displayName,
                                             isOnline
                                     );
+                                })
+                                .addOnFailureListener(e -> {
+
+                                    if (loadVersion != homeFriendsLoadVersion
+                                            || renderVersion != homeFriendsRenderVersion) {
+                                        return;
+                                    }
+
+                                    showHomeFriendWarning(
+                                            "Could not load a friend's profile."
+                                    );
                                 });
                     }
-                })
-                .addOnFailureListener(e -> {
 
-                    Toast.makeText(
-                            HomeActivity.this,
-                            "Failed to load friends.",
-                            Toast.LENGTH_SHORT
-                    ).show();
+                    if (invalidFriendRecords > 0) {
+
+                        showHomeFriendWarning(
+                                "Some friendship records could not be displayed."
+                        );
+                    }
+
+                    if (validFriends == 0 && invalidFriendRecords == 0) {
+                        showNoFriends();
+                    }
                 });
     }
 
@@ -823,5 +935,28 @@ public class HomeActivity extends AppCompatActivity {
         );
 
         friendsContainer.addView(noFriends);
+    }
+
+    private void showHomeFriendWarning(String message) {
+
+        TextView warningText = new TextView(this);
+
+        warningText.setText(message);
+        warningText.setTextSize(13);
+
+        warningText.setTextColor(
+                Color.parseColor("#C84545")
+        );
+
+        warningText.setMaxWidth(dpToPx(180));
+
+        warningText.setPadding(
+                dpToPx(8),
+                dpToPx(8),
+                dpToPx(8),
+                dpToPx(8)
+        );
+
+        friendsContainer.addView(warningText);
     }
 }

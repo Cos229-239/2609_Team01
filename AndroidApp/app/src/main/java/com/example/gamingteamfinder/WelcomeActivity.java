@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.splashscreen.SplashScreen;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -14,9 +15,18 @@ import com.google.firebase.auth.FirebaseUser;
 public class WelcomeActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
+    private boolean keepSplashScreen = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        SplashScreen splashScreen =
+                SplashScreen.installSplashScreen(this);
+
+        splashScreen.setKeepOnScreenCondition(
+                () -> keepSplashScreen
+        );
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
 
@@ -58,6 +68,8 @@ public class WelcomeActivity extends AppCompatActivity {
                 mAuth.signOut();
             }
 
+            // Show Welcome Screen
+            keepSplashScreen = false;
             return;
         }
 
@@ -105,8 +117,16 @@ public class WelcomeActivity extends AppCompatActivity {
                     }
 
                     buttonEmailLogin.setEnabled(true);
+
+                    // Verification failed or account is not eligible for auto-login
+                    keepSplashScreen = false;
                 }
             });
+
+        } else {
+
+            // No saved Firebase session
+            keepSplashScreen = false;
         }
     }
 }
