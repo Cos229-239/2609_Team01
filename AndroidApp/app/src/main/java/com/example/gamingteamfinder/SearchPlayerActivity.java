@@ -170,14 +170,28 @@ public class SearchPlayerActivity extends AppCompatActivity {
         loading.setText("Loading teams...");
         teamsContainer.addView(loading);
 
-        db.collection("teams").get()
+        long teamStartTime =
+                android.os.SystemClock.elapsedRealtime();
+        db.collection("teams")
+                .whereEqualTo("status", "open")
+                .limit(20)
+                .get()
                 .addOnSuccessListener(snapshot -> {
+
+                    long elapsed =
+                            android.os.SystemClock.elapsedRealtime()
+                                    - teamStartTime;
+
+                    android.util.Log.d(
+                            "SearchPerformance",
+                            "Teams: " + snapshot.size()
+                                    + " documents in " + elapsed + " ms"
+                    );
+
                     if (!showingTeams) return;
                     teamsContainer.removeAllViews();
                     int count = 0;
                     for (DocumentSnapshot team : snapshot.getDocuments()) {
-                        String status = team.getString("status");
-                        if (status != null && !status.equals("open")) continue;
                         addTeamCard(team);
                         count++;
                     }
@@ -423,10 +437,24 @@ public class SearchPlayerActivity extends AppCompatActivity {
                         }
                     }
 
-                    // Now load all users
+                    // Load a limited batch of users
+                    long playerStartTime =
+                            android.os.SystemClock.elapsedRealtime();
+
                     db.collection("users")
+                            .limit(30)
                             .get()
                             .addOnSuccessListener(queryDocumentSnapshots -> {
+
+                                long elapsed =
+                                        android.os.SystemClock.elapsedRealtime()
+                                                - playerStartTime;
+
+                                android.util.Log.d(
+                                        "SearchPerformance",
+                                        "Players: " + queryDocumentSnapshots.size()
+                                                + " documents in " + elapsed + " ms"
+                                );
 
                                 int playerCount = 0;
 
