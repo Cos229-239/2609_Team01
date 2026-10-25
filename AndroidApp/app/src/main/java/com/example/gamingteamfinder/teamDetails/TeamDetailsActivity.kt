@@ -13,10 +13,10 @@ import com.example.gamingteamfinder.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import com.bumptech.glide.Glide
 import com.example.gamingteamfinder.utils.TeamLogoHelper
 import com.example.gamingteamfinder.utils.TeamScheduleFormatter
 import android.content.Intent
+import java.time.ZoneId
 import android.view.View
 import com.example.gamingteamfinder.createTeam.EditTeamActivity
 
@@ -87,10 +87,10 @@ class TeamDetailsActivity : AppCompatActivity() {
 
                 findViewById<TextView>(R.id.textTeamName).text = name
                 findViewById<TextView>(R.id.textMemberCount).text =
-                    "$count/$max Members - $mode"
-                findViewById<TextView>(R.id.textGame).text = "Game: $game"
+                    "$count/$max Members · $mode"
+                findViewById<TextView>(R.id.textGame).text = game
                 findViewById<TextView>(R.id.textRanks).text =
-                    "Ranks: $minRank - $maxRank"
+                    "${minRank.ifBlank { "Any" }} – ${maxRank.ifBlank { "Any" }}"
                 findViewById<TextView>(R.id.textAbout).text =
                     about.ifBlank { "No description provided" }
                 findViewById<TextView>(R.id.textRequirements).text =
@@ -100,7 +100,9 @@ class TeamDetailsActivity : AppCompatActivity() {
 
                 if (currentUserId == null) {
                     playTimeView.text =
-                        "$startTime - $endTime\n${days.joinToString(", ")}"
+                        TeamScheduleFormatter.format(
+                            startTime, endTime, days, ownerTimeZone, ZoneId.systemDefault().id
+                        )
                 } else {
                     db.collection("users")
                         .document(currentUserId)
@@ -108,6 +110,7 @@ class TeamDetailsActivity : AppCompatActivity() {
                         .addOnSuccessListener { userDocument ->
 
                             val viewerTimeZone = userDocument.getString("timeZone")
+                                ?.takeIf { it.isNotBlank() } ?: ZoneId.systemDefault().id
 
                             playTimeView.text = TeamScheduleFormatter.format(
                                 startTime,
@@ -119,7 +122,9 @@ class TeamDetailsActivity : AppCompatActivity() {
                         }
                         .addOnFailureListener {
                             playTimeView.text =
-                                "$startTime - $endTime\n${days.joinToString(", ")}\nUnable to load your time zone"
+                                TeamScheduleFormatter.format(
+                                    startTime, endTime, days, ownerTimeZone, ZoneId.systemDefault().id
+                                )
                         }
                 }
 

@@ -18,6 +18,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 
 public class NotificationsActivity extends AppCompatActivity {
 
@@ -105,6 +110,7 @@ public class NotificationsActivity extends AppCompatActivity {
         super.onResume();
 
         loadRequests();
+        loadTeamJoinRequests();
     }
 
     private void loadRequests() {
@@ -155,10 +161,6 @@ public class NotificationsActivity extends AppCompatActivity {
                                 requestId,
                                 fromUid
                         );
-                    }
-
-                    if (pendingCount == 0) {
-                        showNoRequests();
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -509,6 +511,314 @@ public class NotificationsActivity extends AppCompatActivity {
 
         return value;
     }
+
+
+    private void loadTeamJoinRequests() {
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) return;
+
+        String currentUid = currentUser.getUid();
+
+        db.collectionGroup("joinRequests")
+                .whereEqualTo("ownerId", currentUid)
+                .whereEqualTo("status", "pending")
+                .get()
+                .addOnSuccessListener(snapshot -> {
+
+                    for (DocumentSnapshot request : snapshot.getDocuments()) {
+
+                        String teamId = request.getString("teamId");
+                        String requesterId =
+                                request.getString("requesterId");
+
+                        if (teamId == null || requesterId == null) {
+                            continue;
+                        }
+
+                        loadTeamJoinRequestDetails(
+                                request.getReference(),
+                                teamId,
+                                requesterId
+                        );
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e(
+                            "TeamRequests",
+                            "Failed to load team requests",
+                            e
+                    );
+
+                    Toast.makeText(
+                            this,
+                            "Failed to load team requests",
+                            Toast.LENGTH_LONG
+                    ).show();
+                });
+    }
+
+
+    private void loadTeamJoinRequestDetails(
+            DocumentReference requestRef,
+            String teamId,
+            String requesterId
+    ) {
+
+        db.collection("teams").document(teamId)
+                .get()
+                .addOnSuccessListener(teamDoc -> {
+
+                    if (!teamDoc.exists()) return;
+
+                    FirebaseUser currentUser = mAuth.getCurrentUser();
+                    if (currentUser == null ||
+                            !currentUser.getUid().equals(
+                                    teamDoc.getString("ownerId"))) {
+                        return;
+                    }
+
+                    String teamName =
+                            teamDoc.getString("teamName");
+
+                    if (teamName == null) {
+                        teamName = "Unnamed Team";
+                    }
+
+                    final String finalTeamName = teamName;
+
+                    db.collection("users")
+                            .document(requesterId)
+                            .get()
+                            .addOnSuccessListener(userDoc -> {
+
+                                String username =
+                                        userDoc.getString("displayName");
+
+                                if (username == null ||
+                                        username.trim().isEmpty()) {
+                                    username = userDoc.getString("username");
+                                }
+
+                                if (username == null ||
+                                        username.trim().isEmpty()) {
+                                    username = "Player";
+                                }
+
+                                addTeamJoinRequestCard(
+                                        requestRef,
+                                        teamId,
+                                        requesterId,
+                                        username,
+                                        finalTeamName
+                                );
+                            });
+                });
+    }
+
+
+    private void addTeamJoinRequestCard(
+            DocumentReference requestRef,
+            String teamId,
+            String requesterId,
+            String username,
+            String teamName
+    ) {
+
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dp(16), dp(16), dp(16), dp(16));
+
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(Color.parseColor("#D9D9D9"));
+        background.setCornerRadius(dp(12));
+        card.setBackground(background);
+
+        LinearLayout.LayoutParams cardParams =
+                new LinearLayout.LayoutParams(-1, -2);
+        cardParams.bottomMargin = dp(16);
+        card.setLayoutParams(cardParams);
+
+        TextView message = new TextView(this);
+        message.setText(
+                username + " wants to join " + teamName
+        );
+        message.setTextSize(17);
+        message.setTextColor(Color.parseColor("#222222"));
+        message.setPadding(0, 0, 0, dp(12));
+        card.addView(message);
+
+        LinearLayout buttonRow = new LinearLayout(this);
+        buttonRow.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button denyButton = new Button(this);
+        denyButton.setText("Deny");
+        denyButton.setAllCaps(false);
+        denyButton.setLayoutParams(
+                new LinearLayout.LayoutParams(0, dp(50), 1)
+        );
+
+        Button acceptButton = new Button(this);
+        acceptButton.setText("Accept");
+        acceptButton.setAllCaps(false);
+        acceptButton.setTextColor(Color.WHITE);
+        acceptButton.setBackgroundTintList(
+                android.content.res.ColorStateList.valueOf(
+                        Color.parseColor("#6C4FB3")
+                )
+        );
+        acceptButton.setLayoutParams(
+                new LinearLayout.LayoutParams(0, dp(50), 1)
+        );
+
+        denyButton.setOnClickListener(v -> {
+            denyButton.setEnabled(false);
+            acceptButton.setEnabled(false);
+            respondToTeamRequest(
+                    requestRef, teamId, requesterId, false,
+                    denyButton, acceptButton, card
+            );
+        });
+
+        acceptButton.setOnClickListener(v -> {
+            denyButton.setEnabled(false);
+            acceptButton.setEnabled(false);
+            respondToTeamRequest(
+                    requestRef, teamId, requesterId, true,
+                    denyButton, acceptButton, card
+            );
+        });
+
+        buttonRow.addView(denyButton);
+        buttonRow.addView(acceptButton);
+        card.addView(buttonRow);
+
+        requestsContainer.addView(card);
+    }
+
+
+    private void respondToTeamRequest(
+            DocumentReference requestRef,
+            String teamId,
+            String requesterId,
+            boolean accept,
+            Button denyButton,
+            Button acceptButton,
+            LinearLayout card
+    ) {
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) return;
+
+        DocumentReference teamRef =
+                db.collection("teams").document(teamId);
+
+        DocumentReference memberRef =
+                teamRef.collection("members").document(requesterId);
+
+        db.runTransaction(transaction -> {
+
+            DocumentSnapshot team = transaction.get(teamRef);
+            DocumentSnapshot request = transaction.get(requestRef);
+            DocumentSnapshot member = transaction.get(memberRef);
+
+            if (!team.exists() || !request.exists()) {
+                throw new FirebaseFirestoreException(
+                        "Team or request not found",
+                        FirebaseFirestoreException.Code.NOT_FOUND
+                );
+            }
+
+            if (!user.getUid().equals(team.getString("ownerId")) ||
+                    !user.getUid().equals(request.getString("ownerId")) ||
+                    !teamId.equals(request.getString("teamId")) ||
+                    !requesterId.equals(request.getString("requesterId"))) {
+                throw new FirebaseFirestoreException(
+                        "Not authorized",
+                        FirebaseFirestoreException.Code.PERMISSION_DENIED
+                );
+            }
+
+            if (!"pending".equals(request.getString("status"))) {
+                throw new FirebaseFirestoreException(
+                        "Request already processed",
+                        FirebaseFirestoreException.Code.ABORTED
+                );
+            }
+
+            if (!accept) {
+                transaction.update(requestRef, "status", "denied");
+                return null;
+            }
+
+            Long current = team.getLong("currentPlayers");
+            Long maximum = team.getLong("maxPlayers");
+
+            long currentCount = current == null ? 1 : current;
+            long maxCount = maximum == null ? 5 : maximum;
+
+            if (currentCount >= maxCount) {
+                throw new FirebaseFirestoreException(
+                        "Team is full",
+                        FirebaseFirestoreException.Code.FAILED_PRECONDITION
+                );
+            }
+
+            if (member.exists()) {
+                throw new FirebaseFirestoreException(
+                        "Player is already a member",
+                        FirebaseFirestoreException.Code.ALREADY_EXISTS
+                );
+            }
+
+            java.util.Map<String, Object> memberData =
+                    new java.util.HashMap<>();
+
+            memberData.put("userId", requesterId);
+            memberData.put("role", "member");
+            memberData.put(
+                    "joinedAt",
+                    FieldValue.serverTimestamp()
+            );
+
+            transaction.set(memberRef, memberData);
+
+            transaction.update(
+                    teamRef,
+                    "memberIds",
+                    FieldValue.arrayUnion(requesterId),
+                    "currentPlayers",
+                    FieldValue.increment(1)
+            );
+
+            transaction.update(requestRef, "status", "accepted");
+
+            return null;
+
+        }).addOnSuccessListener(unused -> {
+
+            requestsContainer.removeView(card);
+
+            Toast.makeText(
+                    this,
+                    accept ? "Player accepted!" : "Request denied.",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+        }).addOnFailureListener(e -> {
+
+            denyButton.setEnabled(true);
+            acceptButton.setEnabled(true);
+
+            Toast.makeText(
+                    this,
+                    "Could not process request: " + e.getMessage(),
+                    Toast.LENGTH_LONG
+            ).show();
+        });
+    }
+
+
 
     private int dp(int value) {
 

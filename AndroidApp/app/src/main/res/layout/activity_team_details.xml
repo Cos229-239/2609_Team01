@@ -1,169 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:background="#FFFFFF">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
-
-
-        <Button
-            android:id="@+id/buttonBack"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:text="← Back"
-            android:textAllCaps="false"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:backgroundTint="#6C4FB3"
-            android:textColor="#FFFFFF"
-            android:layout_gravity="start"
-            android:layout_marginBottom="16dp" />
-
-
-        <ImageView
-            android:id="@+id/imageTeamLogo"
-            android:layout_width="110dp"
-            android:layout_height="110dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="24dp"
-            android:src="@android:drawable/ic_menu_gallery"
-            android:scaleType="centerCrop"
-            android:contentDescription="Team logo" />
-
-        <TextView
-            android:id="@+id/textTeamName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:gravity="center"
-            android:text="Team Name"
-            android:textColor="#222222"
-            android:textSize="28sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/textMemberCount"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center"
-            android:text="1/5 Members - Ranked"
-            android:textColor="#444444"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/textGame"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="Game:"
-            android:textColor="#222222"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/textRanks"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Ranks:"
-            android:textColor="#222222"
-            android:textSize="16sp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="About:"
-            android:textColor="#222222"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/textAbout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:minHeight="70dp"
-            android:text="Team description"
-            android:textColor="#444444"
-            android:textSize="16sp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Requirements:"
-            android:textColor="#222222"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/textRequirements"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="No additional requirements"
-            android:textColor="#444444"
-            android:textSize="16sp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="Play Time:"
-            android:textColor="#222222"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/textPlayTime"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Schedule"
-            android:textColor="#444444"
-            android:textSize="16sp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="Current Members"
-            android:textColor="#222222"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:id="@+id/layoutMembers"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="vertical" />
-
-        <Button
-            android:id="@+id/buttonEditTeam"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="Edit Team"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#6C4FB3"
-            android:visibility="gone" />
-
-        <Button
-            android:id="@+id/buttonRequestJoin"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:backgroundTint="#6C4FB3"
-            android:text="Request Join Team"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:fillViewport="true" android:background="#F5F3FA">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="20dp">
+        <Button android:id="@+id/buttonBack" android:layout_width="wrap_content"
+            android:layout_height="48dp" android:text="← Back" android:textAllCaps="false"
+            android:backgroundTint="#6C4FB3" android:textColor="#FFFFFF" />
+        <ImageView android:id="@+id/imageTeamLogo" android:layout_width="110dp"
+            android:layout_height="110dp" android:layout_gravity="center_horizontal"
+            android:layout_marginTop="18dp" android:scaleType="fitCenter"
+            android:contentDescription="Team logo" android:src="@android:drawable/ic_menu_gallery" />
+        <TextView android:id="@+id/textTeamName" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="10dp"
+            android:text="Team Name" android:gravity="center" android:textColor="#242033"
+            android:textStyle="bold" android:textSize="28sp" />
+        <TextView android:id="@+id/textMemberCount" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="6dp"
+            android:gravity="center" android:text="1/5 Members" android:textColor="#625875"
+            android:textSize="15sp" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" android:orientation="vertical" android:padding="16dp"
+            android:background="@drawable/bg_team_detail_card">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Game" android:textColor="#6C4FB3" android:textStyle="bold"
+                android:textSize="17sp" android:layout_marginBottom="8dp" />
+            <TextView android:id="@+id/textGame" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="Game" android:textColor="#242033"
+                android:textSize="16sp" android:layout_marginTop="0dp" android:paddingTop="3dp"
+                android:paddingBottom="6dp" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Rank range" android:textColor="#6C4FB3" android:textStyle="bold"
+                android:textSize="17sp" android:layout_marginBottom="8dp" />
+            <TextView android:id="@+id/textRanks" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="Any rank" android:textColor="#242033"
+                android:textSize="16sp" android:layout_marginTop="0dp" android:paddingTop="3dp"
+                android:paddingBottom="6dp" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" android:orientation="vertical" android:padding="16dp"
+            android:background="@drawable/bg_team_detail_card">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Play schedule · Your local time" android:textColor="#6C4FB3" android:textStyle="bold"
+                android:textSize="17sp" android:layout_marginBottom="8dp" />
+            <TextView android:id="@+id/textPlayTime" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="Loading schedule…" android:textColor="#242033"
+                android:textSize="16sp" android:layout_marginTop="0dp" android:paddingTop="3dp"
+                android:paddingBottom="6dp" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" android:orientation="vertical" android:padding="16dp"
+            android:background="@drawable/bg_team_detail_card">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="About the team" android:textColor="#6C4FB3" android:textStyle="bold"
+                android:textSize="17sp" android:layout_marginBottom="8dp" />
+            <TextView android:id="@+id/textAbout" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="No description provided" android:textColor="#242033"
+                android:textSize="16sp" android:layout_marginTop="0dp" android:paddingTop="3dp"
+                android:paddingBottom="6dp" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Requirements" android:textColor="#6C4FB3" android:textStyle="bold"
+                android:textSize="17sp" android:layout_marginBottom="8dp" />
+            <TextView android:id="@+id/textRequirements" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="No additional requirements" android:textColor="#242033"
+                android:textSize="16sp" android:layout_marginTop="0dp" android:paddingTop="3dp"
+                android:paddingBottom="6dp" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" android:orientation="vertical" android:padding="16dp"
+            android:background="@drawable/bg_team_detail_card">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Current members" android:textColor="#6C4FB3" android:textStyle="bold"
+                android:textSize="17sp" android:layout_marginBottom="8dp" />
+            <LinearLayout android:id="@+id/layoutMembers" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="vertical" />
+        </LinearLayout>
+        <Button android:id="@+id/buttonEditTeam" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="20dp"
+            android:text="Edit Team" android:backgroundTint="#6C4FB3"
+            android:textColor="#FFFFFF" android:visibility="gone" />
+        <Button android:id="@+id/buttonRequestJoin" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="16dp"
+            android:text="Request Join Team" android:backgroundTint="#6C4FB3"
             android:textColor="#FFFFFF" />
-
     </LinearLayout>
 </ScrollView>

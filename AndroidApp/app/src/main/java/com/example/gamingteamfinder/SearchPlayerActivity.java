@@ -30,6 +30,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.ArrayList;
 
 public class SearchPlayerActivity extends AppCompatActivity {
 
@@ -276,7 +277,27 @@ public class SearchPlayerActivity extends AppCompatActivity {
                 + " - " + (minRank == null ? "?" : minRank)
                 + " to " + (maxRank == null ? "?" : maxRank), false);
         addTeamText(details, "Mic - " + (Boolean.TRUE.equals(team.getBoolean("voiceChat")) ? "Yes" : "No"), false);
-        String dayText = (days == null || days.isEmpty()) ? "Days not set" : android.text.TextUtils.join(", ", days);
+        String dayText = "Days not set";
+
+        if (days != null && !days.isEmpty()) {
+            List<String> shortDays = new ArrayList<>();
+
+            for (Object day : days) {
+                if (day instanceof String) {
+                    String dayName = (String) day;
+
+                    shortDays.add(
+                            dayName.length() >= 3
+                                    ? dayName.substring(0, 3)
+                                    : dayName
+                    );
+                }
+            }
+
+            if (!shortDays.isEmpty()) {
+                dayText = android.text.TextUtils.join(", ", shortDays);
+            }
+        }
         addTeamText(details, dayText + " · " + (start == null ? "?" : start)
                 + " - " + (end == null ? "?" : end), false);
         addTeamText(details, (members == null ? 0 : members) + "/"

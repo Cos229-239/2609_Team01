@@ -78,8 +78,6 @@ public class HomeActivity extends AppCompatActivity {
         friendsContainer = findViewById(R.id.friendsContainer);
 
         // Quick Actions
-        Button buttonFindTeam = findViewById(R.id.buttonFindTeam);
-        Button buttonFindDuo = findViewById(R.id.buttonFindDuo);
         Button buttonFindPlayers = findViewById(R.id.buttonFindPlayers);
         Button buttonTeam = findViewById(R.id.buttonTeam);
         ImageView buttonFriends = findViewById(R.id.buttonFriends);
@@ -124,23 +122,6 @@ public class HomeActivity extends AppCompatActivity {
 
             startActivity(intent);
         });
-
-        // Find Team
-        buttonFindTeam.setOnClickListener(v -> {
-            Intent intent = new Intent(HomeActivity.this, LfgActivity.class);
-            startActivity(intent);
-        });
-
-
-        // Find Duo - temporary
-        buttonFindDuo.setOnClickListener(v -> {
-            Toast.makeText(
-                    HomeActivity.this,
-                    "Find Duo coming soon",
-                    Toast.LENGTH_SHORT
-            ).show();
-        });
-
 
         // Browse Players
         buttonFindPlayers.setOnClickListener(v -> {
@@ -199,35 +180,38 @@ public class HomeActivity extends AppCompatActivity {
         loadMyTeams();
     }
 
+
     private void loadMyTeams() {
 
         LinearLayout teamsContainer =
                 findViewById(R.id.layoutMyTeams);
 
-        String userId = FirebaseAuth.getInstance()
-                .getCurrentUser() != null
-                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
-                : null;
+        FirebaseUser currentUser =
+                FirebaseAuth.getInstance().getCurrentUser();
 
-        if (userId == null) {
-            teamsContainer.removeAllViews();
-            return;
-        }
-
+        // Stop the previous listener
         if (teamsListener != null) {
             teamsListener.remove();
             teamsListener = null;
         }
 
-        teamsListener = FirebaseFirestore.getInstance()
-                .collection("teams")
-                .whereEqualTo("ownerId", userId)
+        if (currentUser == null) {
+            teamsContainer.removeAllViews();
+            return;
+        }
+
+        String userId = currentUser.getUid();
+
+        // Find every team where the user is a member,
+        // including teams they created.
+        teamsListener = db.collection("teams")
+                .whereArrayContains("memberIds", userId)
                 .addSnapshotListener((snapshot, error) -> {
 
                     if (error != null) {
                         android.util.Log.e(
                                 "HomeActivity",
-                                "Failed to load teams",
+                                "Failed to load My Teams",
                                 error
                         );
 
@@ -243,16 +227,21 @@ public class HomeActivity extends AppCompatActivity {
                     teamsContainer.removeAllViews();
 
                     if (snapshot == null || snapshot.isEmpty()) {
+
                         TextView emptyText = new TextView(this);
+
                         emptyText.setText(
-                                "You haven't created any teams yet."
+                                "You haven't created or joined any teams yet."
                         );
+
                         emptyText.setTextColor(Color.DKGRAY);
                         emptyText.setTextSize(14);
+
                         teamsContainer.addView(emptyText);
                         return;
                     }
 
+                    // Display all teams the user belongs to.
                     for (com.google.firebase.firestore.DocumentSnapshot doc
                             : snapshot.getDocuments()) {
 
@@ -269,6 +258,7 @@ public class HomeActivity extends AppCompatActivity {
                     }
                 });
     }
+
 
 
 

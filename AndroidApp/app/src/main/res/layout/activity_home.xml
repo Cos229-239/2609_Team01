@@ -129,37 +129,6 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="16dp">
-
-                <Button
-                    android:id="@+id/buttonFindTeam"
-                    android:layout_width="0dp"
-                    android:layout_height="78dp"
-                    android:layout_weight="1"
-                    android:text="Find Team"
-                    android:textStyle="bold"
-                    android:textSize="15sp"
-                    android:backgroundTint="#6C4FB3"
-                    android:textColor="#FFFFFF"
-                    android:layout_marginEnd="8dp" />
-                <Button
-                    android:id="@+id/buttonFindDuo"
-                    android:layout_width="0dp"
-                    android:layout_height="78dp"
-                    android:layout_weight="1"
-                    android:text="Find Duo"
-                    android:textStyle="bold"
-                    android:textSize="15sp"
-                    android:backgroundTint="#6C4FB3"
-                    android:textColor="#FFFFFF"
-                    android:layout_marginStart="8dp" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
                 <Button
